@@ -4,6 +4,8 @@
 #include "sitkElastixImageFilter.h"
 #include "sitkElastixImageFilterImpl.h"
 #include "sitkCastImageFilter.h"
+#include "elxCLGPUInterface.h"
+
 
 namespace itk {
   namespace simple {
@@ -49,10 +51,34 @@ ElastixImageFilter::ElastixImageFilterImpl
 }
 
 ElastixImageFilter::ElastixImageFilterImpl
-::~ElastixImageFilterImpl( void )
+::~ElastixImageFilterImpl()
 {
 }
 
+Image ElastixImageFilter::ElastixImageFilterImpl
+::ResampleImage( const Image& inputImage )
+{
+  elastix::CLGPUInterface* pInterface = new elastix::CLGPUInterface();
+  elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType* >( Cast( inputImage, sitkFloat32 ).GetITKBase() );
+
+  elastix::GPUOutputImageType::Pointer gpuImage = pInterface->Resample( itkImage );
+  Image outputImage;
+  if (gpuImage.IsNotNull())
+  {
+    // Image outputImage;
+    outputImage = Image(itkDynamicCastInDebugMode< elastix::CPUInputImageType* > ( gpuImage ));
+    outputImage.MakeUnique();
+  }
+  else
+  {
+    std::cout << pInterface->GetLastError() << std::endl;
+  }
+
+  delete pInterface;
+  pInterface = NULL; 
+
+  return outputImage;
+}
 
 Image
 ElastixImageFilter::ElastixImageFilterImpl

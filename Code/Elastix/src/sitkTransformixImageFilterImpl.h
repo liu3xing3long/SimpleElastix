@@ -126,6 +126,7 @@ struct TransformixImageFilter::TransformixImageFilterImpl
 
   bool                    m_LogToConsole;
   bool                    m_LogToFile;
+
 };
 
 } // end namespace simple

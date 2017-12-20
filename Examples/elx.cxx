@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+
 namespace sitk = itk::simple;
 
 int main ( int argc, char* argv[] ) {

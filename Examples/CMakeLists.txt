@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(SimpleITKExamples)
+link_directories("/home/liuxinglong01/1HDD/work/SimpleElastix/build/Elastix-build/bin")
 
 foreach(p
     CMP0042 # CMake 3.0

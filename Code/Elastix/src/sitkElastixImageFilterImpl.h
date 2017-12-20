@@ -9,6 +9,7 @@
 // Elastix
 #include "elxElastixFilter.h"
 #include "elxParameterObject.h"
+#include "elxCLGPUInterface.h"
 
 namespace itk { 
   namespace simple {
@@ -131,6 +132,8 @@ struct ElastixImageFilter::ElastixImageFilterImpl
   void WriteParameterFile( const std::map< std::string, std::vector< std::string > > parameterMap, const std::string filename );
 
   Image Execute( void );
+  Image ResampleImage( const Image& inputImage );
+
   std::vector< std::map< std::string, std::vector< std::string > > > GetTransformParameterMap( void );
   std::map< std::string, std::vector< std::string > > GetTransformParameterMap( const unsigned int index );
   Image GetResultImage( void );
@@ -167,7 +170,6 @@ struct ElastixImageFilter::ElastixImageFilterImpl
   bool                    m_LogToConsole;
 
   int                     m_NumberOfThreads;
-
 };
 
 } // end namespace simple

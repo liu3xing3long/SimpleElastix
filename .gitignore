@@ -40,6 +40,7 @@
 cmake-build-*
 
 # Source
+build/
 Build/
 .ExternalData
 *~
@@ -50,3 +51,5 @@ SuperBuild/.ExternalSource/
 Documentation/docs/build
 #ignore CLion temporary files.
 .idea/
+
+\.vscode/

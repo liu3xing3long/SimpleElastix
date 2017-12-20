@@ -25,6 +25,7 @@
 // ITK includes
 #include "itkImage.h"
 #include "itkCurvatureFlowImageFilter.h"
+#include "itkGPUResampleImageFilter.h"
 
 // create convenient namespace alias
 namespace sitk = itk::simple;

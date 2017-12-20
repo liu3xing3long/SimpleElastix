@@ -141,6 +141,8 @@ class SITKCommon_EXPORT ElastixImageFilter
     Self& WriteParameterFile( const std::map< std::string, std::vector< std::string > > parameterMap, const std::string filename );
     
     Image Execute( void );
+    Image ResampleImage(  const Image& inputImage  );
+
     std::vector< std::map< std::string, std::vector< std::string > > > GetTransformParameterMap( void );
     std::map< std::string, std::vector< std::string > > GetTransformParameterMap( const unsigned int index );
     Image GetResultImage( void );
