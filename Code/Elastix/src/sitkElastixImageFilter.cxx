@@ -631,11 +631,11 @@ ElastixImageFilter
   return this->m_Pimple->Execute();
 }
 
-Image
-ElastixImageFilter::ResampleImage( const Image& inputImage )
-{
-  return this->m_Pimple->ResampleImage(inputImage);
-}
+// Image
+// ElastixImageFilter::ResampleImage( const Image& inputImage )
+// {
+//   return this->m_Pimple->ResampleImage(inputImage);
+// }
 
 ElastixImageFilter::ParameterMapVectorType 
 ElastixImageFilter

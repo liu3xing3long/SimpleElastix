@@ -168,7 +168,7 @@ set ( SimpleITK_INCLUDE_DIRS
       ${CMAKE_BINARY_DIR}/Code/Common/include
       )
 
-set ( SimpleITK_LIBRARIES SimpleITKCommon SimpleITKIO SimpleITKRegistration ElastixImageFilter TransformixImageFilter )
+set ( SimpleITK_LIBRARIES SimpleITKCommon SimpleITKIO SimpleITKRegistration ElastixImageFilter TransformixImageFilter MedImageGPUFilter)
 
 if( SimpleITK_OPENCL )
   find_package( OpenCL REQUIRED )

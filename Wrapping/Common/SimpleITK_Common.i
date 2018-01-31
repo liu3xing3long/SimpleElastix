@@ -207,6 +207,7 @@ namespace std
 %template( VectorOfParameterMap ) std::vector< std::map< std::string, std::vector< std::string > > >;
 %include "sitkElastixImageFilter.h"
 %include "sitkTransformixImageFilter.h"
+%include "sitkMedImageGPUFilter.h"
 
 // Registration
 %include "sitkImageRegistrationMethod.h"

@@ -55,30 +55,30 @@ ElastixImageFilter::ElastixImageFilterImpl
 {
 }
 
-Image ElastixImageFilter::ElastixImageFilterImpl
-::ResampleImage( const Image& inputImage )
-{
-  elastix::CLGPUInterface* pInterface = new elastix::CLGPUInterface();
-  elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType* >( Cast( inputImage, sitkFloat32 ).GetITKBase() );
+// Image ElastixImageFilter::ElastixImageFilterImpl
+// ::ResampleImage( const Image& inputImage )
+// {
+//   elastix::CLGPUInterface* pInterface = new elastix::CLGPUInterface();
+//   elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType* >( Cast( inputImage, sitkFloat32 ).GetITKBase() );
 
-  elastix::GPUOutputImageType::Pointer gpuImage = pInterface->Resample( itkImage );
-  Image outputImage;
-  if (gpuImage.IsNotNull())
-  {
-    // Image outputImage;
-    outputImage = Image(itkDynamicCastInDebugMode< elastix::CPUInputImageType* > ( gpuImage ));
-    outputImage.MakeUnique();
-  }
-  else
-  {
-    std::cout << pInterface->GetLastError() << std::endl;
-  }
+//   elastix::GPUOutputImageType::Pointer gpuImage = pInterface->Resample( itkImage );
+//   Image outputImage;
+//   if (gpuImage.IsNotNull())
+//   {
+//     // Image outputImage;
+//     outputImage = Image(itkDynamicCastInDebugMode< elastix::CPUInputImageType* > ( gpuImage ));
+//     outputImage.MakeUnique();
+//   }
+//   else
+//   {
+//     std::cout << pInterface->GetLastError() << std::endl;
+//   }
 
-  delete pInterface;
-  pInterface = NULL; 
+//   delete pInterface;
+//   pInterface = NULL; 
 
-  return outputImage;
-}
+//   return outputImage;
+// }
 
 Image
 ElastixImageFilter::ElastixImageFilterImpl

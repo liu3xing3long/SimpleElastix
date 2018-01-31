@@ -85,6 +85,7 @@
 
 #include "sitkElastixImageFilter.h"
 #include "sitkTransformixImageFilter.h"
+#include "sitkMedImageGPUFilter.h"
 
 #include "sitkImageRegistrationMethod.h"
 
