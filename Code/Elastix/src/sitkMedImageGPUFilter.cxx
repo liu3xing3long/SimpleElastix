@@ -124,6 +124,12 @@ Image MedImageGPUFilter
 }
 
 Image MedImageGPUFilter
+::Threshold( const Image& inputImage, double lower /* = 0.0 */, double upper /* = 255.0 */, double outsideValue /* = 0.0 */)
+{
+  return this->m_Pimple->Threshold(inputImage, lower, upper, outsideValue);
+}
+
+Image MedImageGPUFilter
 ::BinaryDilate(const Image& inputImage, unsigned int dilateRadius)
 {
   return this->m_Pimple->BinaryDilate(inputImage, dilateRadius);
@@ -145,6 +151,52 @@ Image MedImageGPUFilter
 ::BinaryClose(const Image& inputImage, unsigned int Radius)
 {
   return this->m_Pimple->BinaryClose(inputImage, Radius);
+}
+
+Image MedImageGPUFilter
+::BinaryThreshold(const Image& inputImage, double lower /* = 0.0 */, double upper /* = 255.0 */, uint8_t insideValue /* = 1u */, uint8_t outsideValue /* = 0u */)
+{
+  return this->m_Pimple->BinaryThreshold(inputImage, lower, upper, insideValue, outsideValue);
+}
+
+Image MedImageGPUFilter
+::Median(const Image& inputImage, const std::vector<unsigned int>& radius /* = std::vector< unsigned int >(3, 1) */)
+{
+  return this->m_Pimple->Median(inputImage, radius);
+}
+
+Image MedImageGPUFilter
+::Mean(const Image& inputImage, const std::vector<unsigned int>& radius/*  = std::vector< unsigned int >(3, 1) */)
+{
+  return this->m_Pimple->Mean(inputImage, radius);
+}
+
+Image MedImageGPUFilter
+::GradientAnisotropicDiffusion(const Image& inputImage, double timeStep/*  = 0.125 */, double conductanceParameter/*  = 3 */, 
+                               unsigned int conductanceScalingUpdateInterval/*  = 1u */, uint32_t numberOfIterations/*  = 5u */)
+{
+  return this->m_Pimple->GradientAnisotropicDiffusion(inputImage, timeStep, conductanceParameter, conductanceScalingUpdateInterval, numberOfIterations);
+}
+
+Image MedImageGPUFilter
+::RecursiveGaussian (const Image &inputImage, double sigma /* = 1.0 */, bool normalizeAcrossScale /* = false */, unsigned int orderType /* = 0 */, unsigned int direction /* = 0u */)
+{
+  return this->m_Pimple->RecursiveGaussian(inputImage, sigma, normalizeAcrossScale, orderType , direction);
+}
+
+Image MedImageGPUFilter
+::DiscreteGaussian (const Image& inputImage, double variance, unsigned int maximumKernelWidth/* =32u */, 
+                    double maximumError/* =0.01 */, bool useImageSpacing/* =true */)
+{
+  return this->m_Pimple->DiscreteGaussian(inputImage, variance, maximumKernelWidth, maximumError, useImageSpacing);
+}
+
+Image MedImageGPUFilter
+::DiscreteGaussian (const Image& inputImage, const std::vector< double >& variance/* =std::vector< double >(3, 1.0)*/, 
+                    unsigned int maximumKernelWidth/* =32u */, const std::vector< double >& maximumError/* =std::vector< double >(3, 0.01) */, 
+                    bool useImageSpacing/* =true */)
+{
+  return this->m_Pimple->DiscreteGaussian(inputImage, variance, maximumKernelWidth, maximumError, useImageSpacing);
 }
 
 /**

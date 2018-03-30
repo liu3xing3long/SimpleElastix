@@ -46,15 +46,24 @@ public:
 
     // resample input image at given spacing 
     Image Resample( const Image& inputImage, const std::vector<float> outputSpacing );
+    Image Threshold( const Image& inputImage, double lower = 0.0, double upper = 255.0, double outsideValue = 0.0);
 
     // morphology operations
     Image BinaryDilate(const Image& inputImage, unsigned int dilateRadius = 1);
     Image BinaryErode(const Image& inputImage, unsigned int erodeRadius = 1);
     Image BinaryOpen(const Image& inputImage, unsigned int Radius = 1);
     Image BinaryClose(const Image& inputImage, unsigned int Radius = 1);
-    
 
-  private:
+    // image filters 
+    Image BinaryThreshold(const Image& inputImage, double lower = 0.0, double upper = 255.0, uint8_t insideValue = 1u, uint8_t outsideValue = 0u);
+    Image Median(const Image& inputImage, const std::vector<unsigned int>& radius = std::vector< unsigned int >(3, 1));
+    Image Mean(const Image& inputImage, const std::vector<unsigned int>& radius = std::vector< unsigned int >(3, 1));
+    Image GradientAnisotropicDiffusion(const Image& inputImage, double timeStep = 0.125, double conductanceParameter = 3, unsigned int conductanceScalingUpdateInterval = 1u, uint32_t numberOfIterations = 5u);
+    Image RecursiveGaussian (const Image &inputImage, double sigma = 1.0, bool normalizeAcrossScale = false, unsigned int orderType = 0, unsigned int direction = 0u);
+    Image DiscreteGaussian (const Image& inputImage, double variance = 1.0, unsigned int maximumKernelWidth = 32u, double maximumError = 0.01, bool useImageSpacing = true);
+    Image DiscreteGaussian (const Image& inputImage, const std::vector< double > &variance = std::vector< double >(3, 1.0), unsigned int maximumKernelWidth = 32u, const std::vector< double > &maximumError = std::vector< double >(3, 0.01), bool useImageSpacing = true);
+
+private:
 
     struct MedImageGPUFilterImpl;
     MedImageGPUFilterImpl* m_Pimple;
