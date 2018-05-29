@@ -100,20 +100,23 @@ MedImageGPUFilter::LogToConsoleOff()
 }
 
 bool
-MedImageGPUFilter::IsGPUEnabled( void )
+MedImageGPUFilter::IsGPUAvailable( void )
 {
-    return this->m_Pimple->IsGPUEnabled();
+    return this->m_Pimple->IsGPUAvailable();
 }
 
-void MedImageGPUFilter::PrintGPUInfo( void )
+void
+MedImageGPUFilter::PrintGPUInfo( void )
 {
     return this->m_Pimple->PrintGPUInfo();    
 }
 
 Image
-MedImageGPUFilter::Resample( const Image &inputImage, const std::vector< float > outputSpacing )
+MedImageGPUFilter::Resample( const Image &inputImage, 
+                             const std::vector< float > outputSpacing /* = std::vector< float >( 3, 1.0 ) */,
+                             unsigned int uInterplolatorOrder /*= 3*/, int iDefault_voxel_value /*= -2048*/)
 {
-    return this->m_Pimple->Resample( inputImage, outputSpacing );
+    return this->m_Pimple->Resample( inputImage, outputSpacing, uInterplolatorOrder, iDefault_voxel_value );
 }
 
 Image

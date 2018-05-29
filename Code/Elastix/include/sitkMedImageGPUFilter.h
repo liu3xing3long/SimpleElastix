@@ -59,7 +59,7 @@ public:
     LogToConsoleOff();
     
     bool
-    IsGPUEnabled( void );
+    IsGPUAvailable( void );
 
     void 
     PrintGPUInfo( void );
@@ -74,12 +74,20 @@ public:
     
     // resample input image at given spacing
     Image
-    Resample( const Image &inputImage, const std::vector< float > outputSpacing );
-    
+    Resample( const Image &inputImage, const std::vector< float > outputSpacing = std::vector< float >( 3, 1.0 ),
+              unsigned int uInterplolatorOrder = 3, int iDefault_voxel_value = -2048 );
+
+    /* threshold image at given upper and lower value, inside value are left as they are and outside values are
+     * set as outsideValue
+     */
     Image
     Threshold( const Image &inputImage, double lower = 0.0, double upper = 255.0, double outsideValue = 0.0 );
-    
-    // morphology operations
+    Image
+    BinaryThreshold( const Image &inputImage, double lower = 0.0, double upper = 255.0, uint8_t insideValue = 1u,
+                     uint8_t outsideValue = 0u );
+    /*
+     * morphology operations
+     */
     Image
     BinaryDilate( const Image &inputImage, unsigned int dilateRadius = 1 );
     
@@ -91,12 +99,10 @@ public:
     
     Image
     BinaryClose( const Image &inputImage, unsigned int Radius = 1 );
-    
-    // image filters
-    Image
-    BinaryThreshold( const Image &inputImage, double lower = 0.0, double upper = 255.0, uint8_t insideValue = 1u,
-                     uint8_t outsideValue = 0u );
-    
+
+    /*
+     * smooth filters
+     */
     Image
     Median( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) );
     
