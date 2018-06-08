@@ -58,6 +58,12 @@ public:
     Self &
     LogToConsoleOff();
     
+    Self &
+    SetVerboseOn();
+
+    Self &
+    SetVerboseOff();
+
     bool
     IsGPUAvailable( void );
 

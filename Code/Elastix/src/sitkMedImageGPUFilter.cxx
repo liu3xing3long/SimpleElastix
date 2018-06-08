@@ -99,6 +99,20 @@ MedImageGPUFilter::LogToConsoleOff()
     return *this;
 }
 
+MedImageGPUFilter::Self &
+MedImageGPUFilter::SetVerboseOn()
+{
+    this->m_Pimple->SetVerboseOn();
+    return *this;
+}
+
+MedImageGPUFilter::Self &
+MedImageGPUFilter::SetVerboseOff()
+{
+    this->m_Pimple->SetVerboseOff();
+    return *this;
+}
+
 bool
 MedImageGPUFilter::IsGPUAvailable( void )
 {

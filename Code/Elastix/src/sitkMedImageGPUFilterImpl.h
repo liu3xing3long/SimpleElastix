@@ -59,6 +59,12 @@ public:
     
     void
     LogToConsoleOff();
+
+    void 
+    SetVerboseOn();
+
+    void 
+    SetVerboseOff();
     
     bool
     IsGPUAvailable( void );
@@ -126,6 +132,7 @@ public:
     
     bool m_LogToFile;
     bool m_LogToConsole;
+    bool m_Verbose;
 };
 
 } // end namespace simple

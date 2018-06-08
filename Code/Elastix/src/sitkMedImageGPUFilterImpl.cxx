@@ -22,6 +22,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::MedImageGPUFilterImpl( void )
     
     this->m_LogToFile = false;
     this->m_LogToConsole = true;
+    this->m_Verbose = false;
     
 }
 
@@ -102,12 +103,25 @@ MedImageGPUFilter::MedImageGPUFilterImpl::LogToConsoleOff()
     this->SetLogToConsole( false );
 }
 
+void
+MedImageGPUFilter::MedImageGPUFilterImpl::SetVerboseOn()
+{
+    this->m_Verbose = true;
+}
+
+void
+MedImageGPUFilter::MedImageGPUFilterImpl::SetVerboseOff()
+{
+    this->m_Verbose = false;
+}
+
+
 bool
 MedImageGPUFilter::MedImageGPUFilterImpl::IsGPUAvailable()
 {
     bool bEnabled = false;
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     bEnabled = pInterface->IsGPUAvailable();
     SAFE_DELETE( pInterface );
@@ -119,7 +133,7 @@ void
 MedImageGPUFilter::MedImageGPUFilterImpl::PrintGPUInfo()
 {
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     pInterface->PrintGPUInfo();
     SAFE_DELETE( pInterface );
@@ -156,7 +170,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Resample( const Image &inputImage,
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -192,7 +206,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Threshold( const Image &inputImage, do
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -226,7 +240,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
@@ -260,7 +274,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
@@ -295,7 +309,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     ////////////////////////////////
     // erode
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
@@ -316,7 +330,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     ///////////////////////////////////
     // dilate
     pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     gpuImage = pInterface->BinaryDilate( itkImage, Radius );
     
@@ -348,7 +362,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     ////////////////////////////////
     // dilate
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
@@ -369,7 +383,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     ///////////////////////////////////
     // dilate
     pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     gpuImage = pInterface->BinaryErode( itkImage, Radius );
     
@@ -403,7 +417,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryThreshold( const Image &inputIma
     ////////////////////////////////
     // dilate
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -445,7 +459,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Median( const Image &inputImage,
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -487,7 +501,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Mean( const Image &inputImage,
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -527,7 +541,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::GradientAnisotropicDiffusion( const Im
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -569,7 +583,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::RecursiveGaussian( const Image &inputI
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -610,7 +624,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::DiscreteGaussian( const Image &inputIm
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
@@ -652,7 +666,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::DiscreteGaussian( const Image &inputIm
     
     // transform to elastix layer
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
-    pInterface->Init();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::CPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::CPUInputImageType * >(
             Cast( inputImage, sitkFloat32 ).GetITKBase() );
