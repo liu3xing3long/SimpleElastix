@@ -58,8 +58,6 @@ R.SetSmoothingSigmasPerLevel([2,1,1])
 
 R.SetMetricAsJointHistogramMutualInformation(20)
 R.MetricUseFixedImageGradientFilterOff()
-R.MetricUseFixedImageGradientFilterOff()
-
 
 R.SetOptimizerAsGradientDescent(learningRate=1.0,
                                 numberOfIterations=100,
@@ -97,8 +95,6 @@ R.SetInitialTransform(displacementTx, inPlace=True)
 
 R.SetMetricAsANTSNeighborhoodCorrelation(4)
 R.MetricUseFixedImageGradientFilterOff()
-R.MetricUseFixedImageGradientFilterOff()
-
 
 R.SetShrinkFactorsPerLevel([3,2,1])
 R.SetSmoothingSigmasPerLevel([2,1,1])
@@ -133,5 +129,5 @@ if ( not "SITK_NOSHOW" in os.environ ):
     out = resampler.Execute(moving)
     simg1 = sitk.Cast(sitk.RescaleIntensity(fixed), sitk.sitkUInt8)
     simg2 = sitk.Cast(sitk.RescaleIntensity(out), sitk.sitkUInt8)
-    cimg = sitk.Compose(simg1, simg2, simg1/2.+simg2/2.)
+    cimg = sitk.Compose(simg1, simg2, simg1//2.+simg2//2.)
     sitk.Show( cimg, "ImageRegistration1 Composition" )

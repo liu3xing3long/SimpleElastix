@@ -37,6 +37,15 @@
       "detaileddescriptionGet" : "Set/Get the value used as \"background\" in the output image. Defaults to NumericTraits<OutputPixelType>::NonpositiveMin() ."
     }
   ],
+  "measurements" : [
+    {
+      "name" : "NumberOfObjects",
+      "type" : "uint64_t",
+      "default" : 0,
+      "briefdescriptionGet" : "",
+      "detaileddescriptionGet" : ""
+    }
+  ],
   "tests" : [
     {
       "tag" : "white_dots",
@@ -50,6 +59,12 @@
       ],
       "inputs" : [
         "Input/WhiteDots.png"
+      ],
+      "measurements_results" : [
+        {
+          "name" : "NumberOfObjects",
+          "value" : "23u"
+        }
       ]
     },
     {
@@ -70,11 +85,17 @@
       ],
       "inputs" : [
         "Input/WhiteDots.png"
+      ],
+      "measurements_results" : [
+        {
+          "name" : "NumberOfObjects",
+          "value" : "21u"
+        }
       ]
     }
   ],
   "briefdescription" : "Label the connected components in a binary image and produce a collection of label objects.",
-  "detaileddescription" : "BinaryImageToLabelMapFilter labels the objects in a binary image. Each distinct object is assigned a unique label. The final object labels start with 1 and are consecutive. Objects that are reached earlier by a raster order scan have a lower label.\n\nThe GetOutput() function of this class returns an itk::LabelMap .\n\nThis implementation was taken from the Insight Journal paper: https://hdl.handle.net/1926/584 or http://www.insight-journal.org/browse/publication/176 \n\n\\author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.\n\n\\see ConnectedComponentImageFilter , LabelImageToLabelMapFilter , LabelMap , LabelObject \n\n\\par Wiki Examples:\n\n\\li All Examples \n\n\\li Label binary regions in an image",
+  "detaileddescription" : "BinaryImageToLabelMapFilter labels the objects in a binary image. Each distinct object is assigned a unique label. The final object labels start with 1 and are consecutive. Objects that are reached earlier by a raster order scan have a lower label.\n\nThe GetOutput() function of this class returns an itk::LabelMap .\n\nThis implementation was taken from the Insight Journal paper: https://hdl.handle.net/1926/584 or http://www.insight-journal.org/browse/publication/176 \n\n\\author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.\n\n\\see ConnectedComponentImageFilter , LabelImageToLabelMapFilter , LabelMap , LabelObject",
   "itk_module" : "ITKLabelMap",
   "itk_group" : "LabelMap"
 }

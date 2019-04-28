@@ -2,9 +2,11 @@ NPROC=$(grep -c processor /proc/cpuinfo)
 
 export MAKEFLAGS="-j ${NPROC}"
 
-OPENSSL_ROOT=openssl-1.0.2h
-OPENSSL_HASH=1d4007e53aad94a5b2002fe045ee7bb0b3d98f1a47f8b2bc851dcd1c74332919
-CMAKE_ROOT=cmake-3.7.2
+OPENSSL_ROOT=openssl-1.0.2q
+# Hash from https://www.openssl.org/source/openssl-1.0.2q.tar.gz.sha256
+OPENSSL_HASH=5744cfcbcec2b1b48629f7354203bc1e5e9b5466998bbccc5b5fcde3b18eb684
+CMAKE_ROOT=cmake-3.11.4
+
 
 function check_var {
     if [ -z "$1" ]; then

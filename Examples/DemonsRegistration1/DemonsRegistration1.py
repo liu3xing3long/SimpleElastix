@@ -44,8 +44,11 @@ matcher.SetNumberOfMatchPoints(7)
 matcher.ThresholdAtMeanIntensityOn()
 moving = matcher.Execute(moving,fixed)
 
+# The basic Demons Registration Filter
+# Note there is a whole family of Demons Registration algorithms included in SimpleITK
 demons = sitk.DemonsRegistrationFilter()
 demons.SetNumberOfIterations( 50 )
+# Standard deviation for Gaussian smoothing of displacement field
 demons.SetStandardDeviations( 1.0 )
 
 demons.AddCommand( sitk.sitkIterationEvent, lambda: command_iteration(demons) )
@@ -72,5 +75,8 @@ if ( not "SITK_NOSHOW" in os.environ ):
     out = resampler.Execute(moving)
     simg1 = sitk.Cast(sitk.RescaleIntensity(fixed), sitk.sitkUInt8)
     simg2 = sitk.Cast(sitk.RescaleIntensity(out), sitk.sitkUInt8)
-    cimg = sitk.Compose(simg1, simg2, simg1/2.+simg2/2.)
+    # Use the // floor division operator so that the pixel type is
+    # the same for all three images which is the expectation for
+    # the compose filter.
+    cimg = sitk.Compose(simg1, simg2, simg1//2.+simg2//2.)
     sitk.Show( cimg, "DeformableRegistration1 Composition" )

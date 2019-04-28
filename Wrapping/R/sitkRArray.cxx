@@ -50,7 +50,7 @@ SEXP ImAsArray(itk::simple::Image src)
     case itk::simple::sitkUnknown:
     {
     char error_msg[1024];
-    snprintf( error_msg, 1024, "Exception thrown ImAsArray : unkown pixel type");
+    snprintf( error_msg, 1024, "Exception thrown ImAsArray : unknown pixel type");
     Rprintf(error_msg);
     return(res);
     }
@@ -170,7 +170,8 @@ SEXP ImAsArray(itk::simple::Image src)
 itk::simple::Image ArrayAsIm(SEXP arr,
                              std::vector<unsigned int> size,
                              std::vector<double> spacing,
-                             std::vector<double> origin)
+                             std::vector<double> origin,
+                             unsigned int numberOfComponents)
 {
   // can't work out how to get the array size in C
   itk::simple::ImportImageFilter importer;
@@ -179,11 +180,11 @@ itk::simple::Image ArrayAsIm(SEXP arr,
   importer.SetSize( size );
   if (Rf_isReal(arr))
     {
-    importer.SetBufferAsDouble(NUMERIC_POINTER(arr));
+    importer.SetBufferAsDouble(NUMERIC_POINTER(arr), numberOfComponents);
     }
   else if (Rf_isInteger(arr) || Rf_isLogical(arr))
     {
-    importer.SetBufferAsInt32(INTEGER_POINTER(arr));
+    importer.SetBufferAsInt32(INTEGER_POINTER(arr), numberOfComponents);
     }
   else
     {

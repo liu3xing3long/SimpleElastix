@@ -262,7 +262,7 @@ namespace itk {
       friend class itk::simple::Command;
       // method call by command when it's deleted, maintains internal
       // references between command and process objects.
-      virtual void onCommandDelete(const itk::simple::Command *cmd) throw();
+      virtual void onCommandDelete(const itk::simple::Command *cmd) SITK_NOEXCEPT;
       #endif
 
 
@@ -274,7 +274,12 @@ namespace itk {
 
         if ( itkImage.IsNull() )
           {
-          sitkExceptionMacro( "Unexpected template dispatch error!" );
+          sitkExceptionMacro("Failure to convert SimpleITK image of dimension: "
+                             << img.GetDimension() << " and pixel type: \""
+                             << img.GetPixelIDTypeAsString() << "\" to ITK image of dimension: "
+                             << TImageType::GetImageDimension() << " and pixel type: \""
+                             << GetPixelIDValueAsString(ImageTypeToPixelIDValue<TImageType>::Result)
+                             << "\"!" )
           }
         return itkImage;
       }
@@ -345,6 +350,7 @@ namespace itk {
       void RemoveObserverFromActiveProcessObject( EventCommand &e );
 
       bool m_Debug;
+
       unsigned int m_NumberOfThreads;
 
       std::list<EventCommand> m_Commands;

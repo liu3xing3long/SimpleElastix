@@ -129,6 +129,9 @@ namespace std
 #define SITK_RETURN_SELF_TYPE_HEADER void
 #endif
 
+#ifndef SITK_NOEXCEPT
+#define SITK_NOEXCEPT
+#endif
 
 
 // define these preprocessor directives to nothing for the swig interface
@@ -192,6 +195,7 @@ namespace std
 %include "sitkImageReaderBase.h"
 %include "sitkImageSeriesReader.h"
 %include "sitkImageFileReader.h"
+%include "sitkImageViewer.h"
 
 // Basic Filters
 %include "sitkHashImageFilter.h"

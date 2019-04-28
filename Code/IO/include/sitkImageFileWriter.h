@@ -54,13 +54,20 @@ class SmartPointer;
       // list of pixel types supported
       typedef NonLabelPixelIDTypeList PixelIDTypeList;
 
-      ImageFileWriter( void );
+      virtual ~ImageFileWriter();
+
+      ImageFileWriter();
 
       /** Print ourselves to string */
       virtual std::string ToString() const;
 
-      /** return user readable name fo the filter */
+      /** return user readable name of the filter */
       virtual std::string GetName() const { return std::string("ImageFileWriter"); }
+
+      /** \brief Get a vector of the names of registered itk ImageIOs
+       */
+      virtual std::vector<std::string> GetRegisteredImageIOs() const;
+
 
       /** \brief Enable compression if available for file type.
        *
@@ -74,6 +81,22 @@ class SmartPointer;
       SITK_RETURN_SELF_TYPE_HEADER UseCompressionOn( void ) { return this->SetUseCompression(true); }
       SITK_RETURN_SELF_TYPE_HEADER UseCompressionOff( void ) { return this->SetUseCompression(false); }
       /** @} */
+
+      /** \brief Set/Get name of ImageIO to use
+       *
+       * An option to override the automatically detected ImageIO used
+       * to write the image. The available ImageIOs are listed by the
+       * GetRegisteredImageIOs method. If the ImageIO can not be
+       * constructed an exception will be generated.
+       *
+       * The  default value is an empty string (""). This indicates
+       * that the ImageIO will be automatically determined by the ITK
+       * ImageIO factory mechanism.
+       * @{
+       */
+      virtual SITK_RETURN_SELF_TYPE_HEADER SetImageIO(const std::string &imageio);
+      virtual std::string GetImageIO( void ) const;
+      /* @} */
 
 
       /** \brief Use the original study/series/frame of reference.
@@ -95,7 +118,7 @@ class SmartPointer;
       std::string GetFileName() const;
 
       SITK_RETURN_SELF_TYPE_HEADER Execute ( const Image& );
-      SITK_RETURN_SELF_TYPE_HEADER Execute ( const Image& , const std::string &inFileName, bool inUseCompression );
+      SITK_RETURN_SELF_TYPE_HEADER Execute ( const Image& , const std::string &inFileName, bool useCompression );
 
     private:
 
@@ -103,9 +126,10 @@ class SmartPointer;
 
       template <class T> Self& ExecuteInternal ( const Image& );
 
-      bool m_UseCompression;
+      bool        m_UseCompression;
       std::string m_FileName;
-      bool m_KeepOriginalImageUID;
+      bool        m_KeepOriginalImageUID;
+      std::string m_ImageIOName;
 
       // function pointer type
       typedef Self& (Self::*MemberFunctionType)( const Image& );

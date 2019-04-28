@@ -21,9 +21,11 @@
 #include "itkProcessObject.h"
 #include "itkCommand.h"
 #include "itkImageToImageFilter.h"
+#include "itkTextOutput.h"
 
 #include <iostream>
 #include <algorithm>
+#include <cstring>
 
 #include "nsstd/functional.h"
 
@@ -37,7 +39,7 @@ static bool GlobalDefaultDebug = false;
 static itk::AnyEvent eventAnyEvent;
 static itk::AbortEvent eventAbortEvent;
 static itk::DeleteEvent eventDeleteEvent;
-static itk::EndEvent eventEndEvent;;
+static itk::EndEvent eventEndEvent;
 static itk::IterationEvent eventIterationEvent;
 static itk::ProgressEvent eventProgressEvent;
 static itk::StartEvent eventStartEvent;
@@ -54,7 +56,7 @@ class SimpleAdaptorCommand
 public:
 
   typedef SimpleAdaptorCommand Self;
-  typedef SmartPointer< Self >  Pointer;
+  typedef SmartPointer< Self > Pointer;
 
   itkNewMacro(Self);
 
@@ -103,9 +105,18 @@ private:
 ProcessObject::ProcessObject ()
   : m_Debug(ProcessObject::GetGlobalDefaultDebug()),
     m_NumberOfThreads(ProcessObject::GetGlobalDefaultNumberOfThreads()),
-    m_ActiveProcess(NULL),
+    m_ActiveProcess(SITK_NULLPTR),
     m_ProgressMeasurement(0.0)
 {
+  static bool firstTime=true;
+  if (firstTime)
+    {
+    if (!strcmp(itk::OutputWindow::GetInstance()->GetNameOfClass(), "Win32OutputWindow"))
+      {
+      itk::OutputWindow::SetInstance( itk::TextOutput::New() );
+      }
+    firstTime = false;
+    }
 }
 
 
@@ -267,13 +278,13 @@ void ProcessObject::SetGlobalDefaultDirectionTolerance(double tolerance)
 
 void ProcessObject::SetGlobalDefaultNumberOfThreads(unsigned int n)
 {
-  MultiThreader::SetGlobalDefaultNumberOfThreads(n);
+  itk::ProcessObject::MultiThreaderType::SetGlobalDefaultNumberOfThreads(n);
 }
 
 
 unsigned int ProcessObject::GetGlobalDefaultNumberOfThreads()
 {
-  return MultiThreader::GetGlobalDefaultNumberOfThreads();
+  return itk::ProcessObject::MultiThreaderType::GetGlobalDefaultNumberOfThreads();
 }
 
 
@@ -377,7 +388,12 @@ void ProcessObject::PreUpdate(itk::ProcessObject *p)
   assert(p);
 
   // propagate number of threads
+  #if ITK_VERSION_MAJOR < 5
   p->SetNumberOfThreads(this->GetNumberOfThreads());
+  #else
+  p->SetNumberOfWorkUnits(this->GetNumberOfThreads());
+  #endif
+
 
   try
     {
@@ -399,15 +415,12 @@ void ProcessObject::PreUpdate(itk::ProcessObject *p)
     }
   catch (...)
     {
-    this->m_ActiveProcess = NULL;
+    this->m_ActiveProcess = SITK_NULLPTR;
     throw;
     }
 
-  if (this->GetDebug())
-     {
-     std::cout << "Executing ITK filter:" << std::endl;
-     p->Print(std::cout);
-     }
+  sitkDebugMacro( "Executing ITK filter:\n" << *p );
+
 }
 
 
@@ -424,7 +437,6 @@ void ProcessObject::RemoveITKObserver( EventCommand &e )
   assert(this->m_ActiveProcess);
   this->m_ActiveProcess->RemoveObserver(e.m_ITKTag);
 }
-
 
 
 const itk::EventObject &ProcessObject::GetITKEventObject(EventEnum e)
@@ -484,11 +496,11 @@ void ProcessObject::OnActiveProcessDelete( )
       i->m_ITKTag = std::numeric_limits<unsigned long>::max();
       }
 
-  this->m_ActiveProcess = NULL;
+  this->m_ActiveProcess = SITK_NULLPTR;
 }
 
 
-void ProcessObject::onCommandDelete(const itk::simple::Command *cmd) throw()
+void ProcessObject::onCommandDelete(const itk::simple::Command *cmd) SITK_NOEXCEPT
 {
   // remove command from m_Command book keeping list, and remove it
   // from the  ITK ProcessObject

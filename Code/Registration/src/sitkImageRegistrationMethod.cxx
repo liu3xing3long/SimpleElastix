@@ -31,6 +31,8 @@
 #include "sitkImageRegistrationMethod_CreateParametersAdaptor.hxx"
 
 
+#include "sitkBSplineTransform.h"
+
 template< typename TValue, typename TType>
 itk::Array<TValue> sitkSTLVectorToITKArray( const std::vector< TType > & in )
 {
@@ -129,13 +131,32 @@ ImageRegistrationMethod::SetInitialTransform ( const Transform &transform )
   this->m_InitialTransform = transform;
   this->m_InitialTransform.MakeUnique();
   this->m_InitialTransformInPlace = true;
+  this->m_TransformBSplineScaleFactors = std::vector<unsigned int>();
   return *this;
-    }
+}
+
+
+void
+ImageRegistrationMethod::SetInitialTransformAsBSpline( BSplineTransform &transform,
+                                                       bool inPlace,
+                                                       const std::vector<unsigned int> &scaleFactors )
+{
+  this->SetInitialTransform(transform, inPlace);
+
+  this->m_TransformBSplineScaleFactors = scaleFactors;
+
+}
+
 
 
 ImageRegistrationMethod::Self&
 ImageRegistrationMethod::SetInitialTransform ( Transform &transform, bool inPlace )
 {
+
+  // clear before making unique, is case the same transform is being
+  // assigned again.
+  this->m_InitialTransform = Transform();
+
   if (inPlace)
     {
     // The registration framework will modify this transform. We
@@ -146,6 +167,7 @@ ImageRegistrationMethod::SetInitialTransform ( Transform &transform, bool inPlac
 
   this->m_InitialTransform = transform;
   this->m_InitialTransformInPlace = inPlace;
+  this->m_TransformBSplineScaleFactors = std::vector<unsigned int>();
   return *this;
 }
 
@@ -355,6 +377,31 @@ ImageRegistrationMethod::SetOptimizerAsLBFGSB( double gradientConvergenceToleran
 
 
 ImageRegistrationMethod::Self&
+ImageRegistrationMethod::SetOptimizerAsLBFGS2( double solutionAccuracy ,
+                                               unsigned int numberOfIterations,
+                                               unsigned int hessianApproximateAccuracy,
+                                               unsigned int deltaConvergenceDistance,
+                                               double deltaConvergenceTolerance,
+                                               unsigned int lineSearchMaximumEvaluations,
+                                               double lineSearchMinimumStep,
+                                               double lineSearchMaximumStep,
+                                               double lineSearchAccuracy )
+{
+  m_OptimizerType = LBFGS2;
+  m_OptimizerSolutionAccuracy = solutionAccuracy;
+  m_OptimizerNumberOfIterations = numberOfIterations;
+  m_OptimizerHessianApproximationAccuracy = hessianApproximateAccuracy;
+  m_OptimizerDeltaConvergenceDistance = deltaConvergenceDistance;
+  m_OptimizerDeltaConvergenceTolerance = deltaConvergenceTolerance;
+  m_OptimizerLineSearchMaximumEvaluations = lineSearchMaximumEvaluations;
+  m_OptimizerLineSearchMinimumStep = lineSearchMinimumStep;
+  m_OptimizerLineSearchMaximumStep = lineSearchMaximumStep;
+  m_OptimizerLineSearchAccuracy = lineSearchAccuracy;
+  return *this;
+}
+
+
+ImageRegistrationMethod::Self&
 ImageRegistrationMethod::SetOptimizerWeights( const std::vector<double> &weights)
 {
   this->m_OptimizerWeights = weights;
@@ -502,6 +549,13 @@ ImageRegistrationMethod::SetMetricSamplingPercentagePerLevel(const std::vector<d
   return *this;
 }
 
+
+const std::vector<double> &
+ImageRegistrationMethod::GetMetricSamplingPercentagePerLevel( ) const
+{
+  return m_MetricSamplingPercentage;
+}
+
 ImageRegistrationMethod::Self&
 ImageRegistrationMethod::SetMetricSamplingStrategy( MetricSamplingStrategyType strategy)
 {
@@ -599,6 +653,15 @@ double ImageRegistrationMethod::GetMetricValue() const
     return this->m_pfGetMetricValue();
     }
   return m_MetricValue;
+}
+
+uint64_t ImageRegistrationMethod::GetMetricNumberOfValidPoints() const
+{
+  if(bool(this->m_pfGetMetricNumberOfValidPoints))
+    {
+    return this->m_pfGetMetricNumberOfValidPoints();
+    }
+  return m_NumberOfValidPoints;
 }
 
 std::vector<double> ImageRegistrationMethod::GetOptimizerScales() const
@@ -852,7 +915,11 @@ Transform ImageRegistrationMethod::ExecuteInternal ( const Image &inFixed, const
   //
   // Configure Optimizer
   //
+  #if ITK_VERSION_MAJOR < 5
   optimizer->SetNumberOfThreads(this->GetNumberOfThreads());
+  #else
+  optimizer->SetNumberOfWorkUnits(this->GetNumberOfThreads());
+  #endif
 
   registration->SetOptimizer( optimizer );
 
@@ -878,12 +945,9 @@ Transform ImageRegistrationMethod::ExecuteInternal ( const Image &inFixed, const
     optimizer->SetScales(scales);
     }
 
-  if (this->GetDebug())
-    {
-    registration->Print(std::cout);
-    registration->GetOptimizer()->Print(std::cout);
-    registration->GetMetric()->Print(std::cout);
-    }
+  sitkDebugMacro(<< *registration
+                 << *registration->GetOptimizer()
+                 << *registration->GetMetric());
 
   m_pfGetOptimizerStopConditionDescription =  nsstd::bind(&_OptimizerType::GetStopConditionDescription, optimizer.GetPointer());
 
@@ -900,6 +964,7 @@ Transform ImageRegistrationMethod::ExecuteInternal ( const Image &inFixed, const
 
     m_MetricValue = this->GetMetricValue();
     m_Iteration = this->GetOptimizerIteration();
+    m_NumberOfValidPoints = this->GetMetricNumberOfValidPoints();
 
     throw;
     }
@@ -910,6 +975,7 @@ Transform ImageRegistrationMethod::ExecuteInternal ( const Image &inFixed, const
 
   m_MetricValue = this->GetMetricValue();
   m_Iteration = this->GetOptimizerIteration();
+  m_NumberOfValidPoints = this->GetMetricNumberOfValidPoints();
 
   if (this->m_InitialTransformInPlace)
     {
@@ -1051,7 +1117,12 @@ ImageRegistrationMethod::SetupMetric(
   const unsigned int ImageDimension = FixedImageType::ImageDimension;
   typedef itk::SpatialObject<ImageDimension> SpatialObjectMaskType;
 
+  #if ITK_VERSION_MAJOR < 5
   metric->SetMaximumNumberOfThreads(this->GetNumberOfThreads());
+  #else
+  metric->SetMaximumNumberOfWorkUnits(this->GetNumberOfThreads());
+  #endif
+
 
   metric->SetUseFixedImageGradientFilter( m_MetricUseFixedImageGradientFilter );
   metric->SetUseMovingImageGradientFilter( m_MetricUseMovingImageGradientFilter );
@@ -1131,7 +1202,7 @@ void ImageRegistrationMethod::RemoveITKObserver( EventCommand &e )
   return Superclass::RemoveITKObserver(e);
 }
 
-void ImageRegistrationMethod::OnActiveProcessDelete( ) throw()
+void ImageRegistrationMethod::OnActiveProcessDelete( ) SITK_NOEXCEPT
 {
   Superclass::OnActiveProcessDelete( );
 
@@ -1141,6 +1212,7 @@ void ImageRegistrationMethod::OnActiveProcessDelete( ) throw()
   this->m_pfGetOptimizerLearningRate = SITK_NULLPTR;
   this->m_pfGetOptimizerConvergenceValue = SITK_NULLPTR;
   this->m_pfGetMetricValue = SITK_NULLPTR;
+  this->m_pfGetMetricNumberOfValidPoints = SITK_NULLPTR;
   this->m_pfGetOptimizerScales = SITK_NULLPTR;
   this->m_pfGetOptimizerStopConditionDescription = SITK_NULLPTR;
 

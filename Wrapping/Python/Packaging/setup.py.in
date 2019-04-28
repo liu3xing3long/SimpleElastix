@@ -104,4 +104,4 @@ setup(
     keywords = 'SimpleITK ITK InsightToolkit segmentation registration',
     url = r'http://simpleitk.org/',
     cmdclass={'build_ext':build_ext}
-    )
+)

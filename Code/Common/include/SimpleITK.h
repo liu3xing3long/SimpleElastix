@@ -15,8 +15,8 @@
 *  limitations under the License.
 *
 *=========================================================================*/
-#ifndef __SimpleITK_h
-#define __SimpleITK_h
+#ifndef SimpleITK_h
+#define SimpleITK_h
 
 /** \file SimpleITK.h
  *
@@ -29,7 +29,6 @@
  */
 
 #include <stdint.h>
-
 
 
 // Utility classes
@@ -68,6 +67,7 @@
 #include "sitkImageFileWriter.h"
 #include "sitkImageSeriesWriter.h"
 #include "sitkImportImageFilter.h"
+#include "sitkImageViewer.h"
 
 
 #include "sitkHashImageFilter.h"

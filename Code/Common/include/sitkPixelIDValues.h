@@ -43,9 +43,17 @@ struct ImageTypeToPixelIDValue
   enum { Result = PixelIDToPixelIDValue< typename ImageTypeToPixelID<TImageType>::PixelIDType>::Result };
 };
 
+
+template <unsigned int VImageDimension>
+struct ImageTypeToPixelIDValue< itk::ImageBase<VImageDimension> >
+{
+  enum { Result = -1 };
+};
+
+
 /** \brief Enumerated values of pixelIDs
  *
- * Each PixelID's value correspondes to the index of the PixelID type,
+ * Each PixelID's value corresponds to the index of the PixelID type,
  * in the type list "InstantiatedPixelIDTypeList". It is possible that
  * different configurations for SimpleITK could result in different
  * values for pixelID. So these enumerated values should be used.
@@ -53,8 +61,8 @@ struct ImageTypeToPixelIDValue
  * Additionally, not all PixelID an instantiated in for the tool
  * kit. If a PixelID is not instantiated then it's value is
  * -1. Therefore it is likely that multiple elements in the
- * enumeration will have a zero value. Therefore the first prefered
- * methods is to use "if" statements, with the first branch checking
+ * enumeration will have a zero value. Therefore the first preferred
+ * method is to use "if" statements, with the first branch checking
  * for the Unknown value.
  *
  * If a switch case statement is needed the ConditionalValue
@@ -110,7 +118,6 @@ enum PixelIDValueEnum {
 };
 
 
-
 const std::string SITKCommon_EXPORT GetPixelIDValueAsString( PixelIDValueType type );
 const std::string SITKCommon_EXPORT GetPixelIDValueAsString( PixelIDValueEnum type );
 const std::string SITKCommon_EXPORT GetPixelIDValueAsElastixParameter( PixelIDValueType type );
@@ -137,7 +144,6 @@ SITKCommon_EXPORT std::ostream& operator<<(std::ostream& os, const PixelIDValueE
 #endif
 
 
-
 }
 }
-#endif // _sitkPixelIDValues_h
+#endif // sitkPixelIDValues_h
