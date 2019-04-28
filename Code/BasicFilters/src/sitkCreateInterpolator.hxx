@@ -19,6 +19,7 @@
 #define sitkCreateInterpolator_hxx
 
 
+#include "sitkMacro.h"
 #include "sitkInterpolator.h"
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkLinearInterpolateImageFunction.h>
@@ -26,6 +27,7 @@
 #include <itkGaussianInterpolateImageFunction.h>
 #include <itkLabelImageGaussianInterpolateImageFunction.h>
 #include <itkWindowedSincInterpolateImageFunction.h>
+#include <itkBSplineResampleImageFunction.h>
 
 namespace itk
 {
@@ -139,8 +141,44 @@ CreateInterpolator( const TImageType *image, InterpolatorEnum itype )
       typedef itk::WindowedSincInterpolateImageFunction<TImageType, WindowingRadius, WindowFunction, BoundaryCondition> InterpolatorType;
       return RType( ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() ) );
     }
+    case sitkBSplineResamplerOrder1:
+    {
+    typedef typename itk::BSplineResampleImageFunction<TImageType, double> InterpolatorType;
+    typename InterpolatorType::Pointer p = ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() );
+    p->SetSplineOrder(1);
+    return RType( p );
+    }
+    case sitkBSplineResamplerOrder2:
+    {
+    typedef typename itk::BSplineResampleImageFunction<TImageType, double> InterpolatorType;
+    typename InterpolatorType::Pointer p = ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() );
+    p->SetSplineOrder(2);
+    return RType( p );
+    }
+    case  sitkBSplineResamplerOrder3:
+      // sitkBSplineResampler
+    {
+    typedef typename itk::BSplineResampleImageFunction<TImageType, double> InterpolatorType;
+    typename InterpolatorType::Pointer p = ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() );
+    p->SetSplineOrder(3);
+    return RType( p );
+    }
+    case sitkBSplineResamplerOrder4:
+    {
+    typedef typename itk::BSplineResampleImageFunction<TImageType, double> InterpolatorType;
+    typename InterpolatorType::Pointer p = ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() );
+    p->SetSplineOrder(4);
+    return RType( p );
+    }
+    case sitkBSplineResamplerOrder5 :
+    {
+    typedef typename itk::BSplineResampleImageFunction<TImageType, double> InterpolatorType;
+    typename InterpolatorType::Pointer p = ConditionalCreateInterpolator<InterpolatorType>( typename IsBasic<TImageType>::Type() );
+    p->SetSplineOrder(5);
+    return RType( p );
+    }
     default:
-      return NULL;
+      return SITK_NULLPTR;
     }
 
 }

@@ -35,7 +35,12 @@ import textwrap
 import sys
 import types
 import os.path
+import getopt
+import regex
 
+debug = 0
+
+debug = 0
 
 def my_open_read(source):
     if hasattr(source, "read"):
@@ -90,6 +95,7 @@ class Doxy2SWIG:
 
         # flag to tell when we're inside a <simplesect> node with kind=="see".
         self.insideSee = False
+        self.printSee = False
 
     def generate(self):
         """Parses the file set in the initialization.  The resulting
@@ -175,22 +181,49 @@ class Doxy2SWIG:
            0.
 
         """
+        if debug:
+            print "Generic parse: ", node, node.__class__.__name__, node.tagName, self.pieces[-5:]
+
         npiece = 0
         if pad:
             npiece = len(self.pieces)
             if pad == 2:
                 self.add_text('\n')
+
+        if debug:
+            print len(node.childNodes), "children"
+            for n in node.childNodes:
+                print "child: ", n, n.__class__.__name__
+                if n.__class__.__name__ == "Element":
+                    print n.tagName
+
+        firstSee = True
         for n in node.childNodes:
+            if n.__class__.__name__ == "Element":
+                if n.tagName == "simplesect":
+                    kind = n.attributes['kind'].value
+                    if kind == "see":
+                        if debug:
+                            print "simplesect attributes:", n.attributes
+                        if firstSee:
+                            n.setAttribute("PrintSee", "1")
+                        firstSee = False
+                    else:
+                        firstSee = True
+                else:
+                    firstSee = True
             self.parse(n)
         if pad:
             if len(self.pieces) > npiece:
                 self.add_text('\n')
+        if debug:
+            print ""
 
     def space_parse(self, node):
         """ Only output a space if the last character outputed was not a new line.
             I.e., don't allow a line to lead with a space.
         """
-	if len(self.pieces) and self.pieces[-1][-1] != '\n':
+        if len(self.pieces) and self.pieces[-1][-1] != '\n':
           self.add_text(' ')
         self.generic_parse(node)
 
@@ -323,6 +356,8 @@ class Doxy2SWIG:
             self.generic_parse(node)
 
     def do_simplesect(self, node):
+        if debug:
+            print "Simplesect"
         kind = node.attributes['kind'].value
         if kind in ('date', 'rcs', 'version'):
             pass
@@ -330,8 +365,11 @@ class Doxy2SWIG:
             self.add_text(['\n', 'WARNING:'])
             self.generic_parse(node)
         elif kind == 'see':
-            self.add_text('\n')
-            self.add_text('See:')
+            if node.getAttribute("PrintSee"):
+                if debug:
+                    print "Printing See"
+                self.add_text('\n')
+                self.add_text('See:')
             self.insideSee = True
             self.generic_parse(node)
             self.insideSee = False
@@ -415,8 +453,42 @@ class Doxy2R(Doxy2SWIG):
         self.FilterTitle = True
         self.sitkClassName=''
         self.EmptyText = False
+        # compiled regular expressions
+        # common formula types in xml version of documentation
         self.dollarFormula = re.compile("^\\$(.+)\\$$")
         self.arrayFormula = re.compile("^\\\\\\[(.+)\\\\\\]$")
+        # more complex formula layout, that breaks R documentation
+        # checks.
+        self.mathstuff1 = re.compile(r"\\begin\{array\}\{[^}]+\}")
+        self.mathstuff2 = re.compile(r"\\begin\{array\}")
+        self.mathstuff3 = re.compile(r"\\end\{array\}")
+        # a complex recursive regular expression, to deal with formula
+        # inside mbox and text structures
+        self.mathstuff4 = regex.compile(r"\\mbox({((?>[^}{]*(?1)?)*)})", flags=regex.V1)
+        self.mathstuff5 = regex.compile(r"\\text({((?>[^}{]*(?1)?)*)})", flags=regex.V1)
+        # the special doxygen tags - note - not greedy
+        self.mathstuff6 = re.compile(r"\\f\$(.+?)\\f\$")
+        # alignment tags
+        self.mathstuff7 = re.compile(r" & ")
+
+    def filterLatexMath(self, txt):
+        """
+        Removes the more complex formatting from latex formula.
+        R documentation format doesn't deal with structures like
+        equation arrays or the various boxes.
+        """
+        m1 = self.mathstuff1.sub("", txt)
+        m1 = self.mathstuff2.sub("", m1)
+        m1 = self.mathstuff3.sub("", m1)
+        if self.mathstuff4.search(m1) is not None:
+           (m1, cc) = self.mathstuff4.subn(r"\2", m1)
+           (m1, cc) = self.mathstuff6.subn(r"\1", m1)
+        if self.mathstuff5.search(m1) is not None:
+           (m1, cc) = self.mathstuff5.subn(r"\2", m1)
+           (m1, cc) = self.mathstuff6.subn(r"\1", m1)
+        (m1, cc) = self.mathstuff7.subn(" ", m1)
+        return(m1)
+
     def parse_Text(self, node):
         txt = node.data
         txt = txt.replace('\\', r'\\\\')
@@ -439,10 +511,10 @@ class Doxy2R(Doxy2SWIG):
             f2 = self.arrayFormula.match(txt)
             if f1 is not None:
                 self.add_text(' \\eqn{')
-                self.add_text(f1.group(1))
+                self.add_text(self.filterLatexMath(f1.group(1)))
             elif f2 is not None:
                 self.add_text(' \\deqn{')
-                self.add_text(f2.group(1))
+                self.add_text(self.filterLatexMath(f2.group(1)))
             else:
                 print("Unmatched formula")
                 print(txt)
@@ -488,6 +560,8 @@ class Doxy2R(Doxy2SWIG):
             # check that we actually got a detailed description.
             # Not having a title is illegal in R
             # use the class name otherwise
+            if self.EmptyText:
+                self.add_text(self.sitkClassName)
             self.add_text('}\n')
     def do_briefdescription(self, node):
         # there are brief descriptions all over the place and
@@ -603,7 +677,7 @@ class Doxy2RProc(Doxy2SWIG):
         self.EmptyText = False
         self.piecesdict = dict()
         self.currentFunc=''
-        self.Usage=dict()
+        self.NotesCPP=dict()
 
     def parse_Text(self, node):
         txt = node.data
@@ -640,6 +714,8 @@ class Doxy2RProc(Doxy2SWIG):
             # check that we actually got a detailed description.
             # Not having a title is illegal in R
             # use the class name otherwise
+            if self.EmptyText:
+                self.add_text(self.sitkClassName)
             self.add_text('}\n')
     def do_briefdescription(self, node):
         # there are brief descriptions all over the place and
@@ -661,7 +737,6 @@ class Doxy2RProc(Doxy2SWIG):
         tmp = node.parentNode.parentNode.parentNode
         compdef = tmp.getElementsByTagName('compounddef')[0]
         cdef_kind = compdef.attributes['kind'].value
-
         self.FilterTitle = False;
 
         if prot == 'public':
@@ -689,36 +764,57 @@ class Doxy2RProc(Doxy2SWIG):
                     self.add_text('\\name{%s}\n' %(name))
                     self.add_text('\\alias{%s}\n' %(name))
                     self.add_text('\\description{\n')
-                    self.generic_parse(others['briefdescription'])
+                    if others['briefdescription'] is None or \
+                       others['briefdescription'].firstChild.data.isspace() or \
+                       others['briefdescription'].firstChild.data == '':
+                       ## not creating a link because the guess isn't always correct. There
+                       ## are things like the TransformInitializerFilter family that don't
+                       ## match this pattern.
+                       self.add_text('See class definition - most likely %sImageFilter' %(name))
+                    else:
+                       self.generic_parse(others['briefdescription'])
                     self.add_text('\n}\n\n')
                     self.add_text('\\details{\n')
-                    self.generic_parse(others['detaileddescription'])
+                    if others['detaileddescription'] is None or \
+                       others['detaileddescription'].firstChild.data.isspace() or \
+                       others['detaileddescription'].firstChild.data == '':
+                       ## not creating a link because the guess isn't always correct. There
+                       ## are things like the TransformInitializerFilter family that don't
+                       ## match this pattern.
+                      self.add_text('See class definition - most likely %sImageFilter' %(name))
+                    else:
+                       self.generic_parse(others['detaileddescription'])
                     self.add_text('\n}\n\n')
 
                 # now the potentially repeated bits (overloading)
                 # Rd doesn't allow multiple usage statements, so
-                # collect them
-                usage=defn + argstring
-                if not name in self.Usage:
-                    self.Usage[self.currentname]=""
+                # collect them. Changed to using a note section, as
+                # usage needs to be R code, not c++
+                notecpp=defn + argstring
+                if not name in self.NotesCPP:
+                    self.NotesCPP[self.currentname]=""
 
-                self.Usage[self.currentname] = self.Usage[self.currentname] + '\n\n' + usage
+                self.NotesCPP[self.currentname] = self.NotesCPP[self.currentname] + '\n\n' + notecpp
 
     def do_sectiondef(self, node):
         kind = node.attributes['kind'].value
-        if kind in ('public-func', 'func'):
+        if kind in ('public-func', 'func', 'user-defined'):
             self.generic_parse(node)
 
     def write(self, fname, mode='w'):
         ## fname is the destination folder
         if os.path.isdir(fname):
             for FuncName in self.piecesdict:
+                if FuncName == '' or \
+                   FuncName.isspace() or \
+                   FuncName == '\n':
+                    continue
                 outname=os.path.join(fname, FuncName + ".Rd")
-                ## add the usage to the end
-                if FuncName in self.Usage:
+                ## add the note to the end
+                if FuncName in self.NotesCPP:
                     self.currentname=FuncName
-                    usage = '\\usage{\n%s\n}\n' % self.Usage[FuncName]
-                    self.add_text(usage)
+                    notecpp = '\\note{\n%s\n}\n' % self.NotesCPP[FuncName]
+                    self.add_text(notecpp)
                 self.pieces = self.piecesdict[FuncName]
                 Doxy2SWIG.write(self,outname)
         else:
@@ -729,8 +825,35 @@ def main(input, output):
     p.generate()
     p.write(output)
 
+def usage():
+    print ""
+    print ("doxy2swig.py [options] input.xml output.i")
+    print ""
+    print ("  -h, --help                  This message")
+    print ("  -d, --debug                 Debug")
+    print ""
+
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print (__doc__)
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "dh", [ "debug", "help" ] )
+    except getopt.GetoptError, err:
+        print (str(err))
+        usage()
+        sys.exit(2)
+
+    for o, a in opts:
+        if o in ("-d", "--debug"):
+            debug = debug + 1
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        else:
+            assert False, "unhandled options"
+
+
+    if len(args) != 2:
+        usage()
         sys.exit(1)
-    main(sys.argv[1], sys.argv[2])
+    main(args[0], args[1])

@@ -19,11 +19,12 @@
 #include "sitkImageReaderBase.h"
 #include "sitkMacro.h"
 #include "sitkExceptionObject.h"
+#include "sitkImageIOUtilities.h"
 
 #include <itksys/SystemTools.hxx>
 
 // Include the Transform IO here, so that the IO factory registration
-// will occour.
+// will occur.
 #include <itkTransformFileReader.h>
 #include <itkTransformFileWriter.h>
 
@@ -35,14 +36,19 @@
 #include <itkGDCMImageIO.h>
 
 
-
 namespace itk {
 namespace simple {
 
 ImageReaderBase
+::~ImageReaderBase()
+{
+}
+
+ImageReaderBase
 ::ImageReaderBase()
   : m_OutputPixelType(sitkUnknown),
-    m_LoadPrivateTags(false)
+    m_LoadPrivateTags(false),
+    m_ImageIOName("")
 {
 }
 
@@ -55,16 +61,35 @@ ImageReaderBase
   this->ToStringHelper(out, this->m_OutputPixelType) << std::endl;
   out << "  LoadPrivateTags: ";
   this->ToStringHelper(out, this->m_LoadPrivateTags) << std::endl;
+  out << "  ImageIOName: ";
+  this->ToStringHelper(out, this->m_ImageIOName) << std::endl;
+  out << "  Registered ImageIO:" << std::endl;
+  ioutils::PrintRegisteredImageIOs(out);
   out << ProcessObject::ToString();
   return out.str();
+}
+
+
+std::vector<std::string>
+ImageReaderBase
+::GetRegisteredImageIOs() const
+{
+  return ioutils::GetRegisteredImageIOs();
 }
 
 itk::SmartPointer<ImageIOBase>
 ImageReaderBase
 ::GetImageIOBase(const std::string &fileName)
 {
-  itk::ImageIOBase::Pointer iobase =
-    itk::ImageIOFactory::CreateImageIO( fileName.c_str(), itk::ImageIOFactory::ReadMode);
+  itk::ImageIOBase::Pointer iobase;
+  if (this->m_ImageIOName == "")
+    {
+    iobase = itk::ImageIOFactory::CreateImageIO( fileName.c_str(), itk::ImageIOFactory::ReadMode);
+    }
+  else
+    {
+    iobase = ioutils::CreateImageIOByName(m_ImageIOName);
+    }
 
 
   if ( iobase.IsNull() )
@@ -142,6 +167,21 @@ ImageReaderBase
   this->SetLoadPrivateTags(false);
 }
 
+ImageReaderBase::Self&
+ImageReaderBase
+::SetImageIO(const std::string &imageio)
+{
+  this->m_ImageIOName = imageio;
+  return *this;
+}
+
+
+std::string
+ImageReaderBase
+::GetImageIO(void) const
+{
+  return this->m_ImageIOName;
+}
 
 void
 ImageReaderBase
@@ -157,7 +197,7 @@ ImageReaderBase
 
 void
 ImageReaderBase
-::GetPixelIDFromImageIO( ImageIOBase *iobase,
+::GetPixelIDFromImageIO( const ImageIOBase *iobase,
                          PixelIDValueType &outPixelType,
                          unsigned int & outDimensions )
 {
@@ -196,7 +236,9 @@ ImageReaderBase
     }
   else
     {
-    sitkExceptionMacro(  "Unknown PixelType: "  << (int) componentType );
+    sitkExceptionMacro(  "Unknown PixelType: "
+                         << itk::ImageIOBase::GetComponentTypeAsString(componentType)
+                         << "(" <<(int) componentType << ")" );
     }
 
   sitkExceptionMacro( "Unable to load image." );
@@ -204,7 +246,7 @@ ImageReaderBase
 
 unsigned int
 ImageReaderBase
-::GetDimensionFromImageIO( itk::ImageIOBase* iobase, unsigned int i)
+::GetDimensionFromImageIO( const itk::ImageIOBase* iobase, unsigned int i)
 {
   return iobase->GetDimensions(i);
 }
@@ -247,10 +289,22 @@ ImageReaderBase
       return ImageTypeToPixelIDValue< itk::Image<uint32_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::LONG:
-      return ImageTypeToPixelIDValue< itk::Image<long, UnusedDimension> >::Result;
+      if (sizeof(long) == 4 )
+        return ImageTypeToPixelIDValue< itk::Image<int32_t, UnusedDimension> >::Result;
+      else
+        return ImageTypeToPixelIDValue< itk::Image<int64_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::ULONG:
-      return ImageTypeToPixelIDValue< itk::Image<unsigned long, UnusedDimension> >::Result;
+      if (sizeof(unsigned long) == 4 )
+        return ImageTypeToPixelIDValue< itk::Image<uint32_t, UnusedDimension> >::Result;
+      else
+        return ImageTypeToPixelIDValue< itk::Image<uint64_t, UnusedDimension> >::Result;
+      break;
+    case itk::ImageIOBase::LONGLONG:
+      return ImageTypeToPixelIDValue< itk::Image<int64_t, UnusedDimension> >::Result;
+      break;
+    case itk::ImageIOBase::ULONGLONG:
+      return ImageTypeToPixelIDValue< itk::Image<uint64_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::FLOAT:
       return ImageTypeToPixelIDValue< itk::Image<float, UnusedDimension> >::Result;
@@ -295,10 +349,10 @@ ImageReaderBase
   switch(componentType)
     {
     case itk::ImageIOBase::CHAR:
-      return ImageTypeToPixelIDValue< itk::VectorImage<signed char, UnusedDimension> >::Result;
+      return ImageTypeToPixelIDValue< itk::VectorImage<int8_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::UCHAR:
-      return ImageTypeToPixelIDValue< itk::VectorImage<unsigned char, UnusedDimension> >::Result;
+      return ImageTypeToPixelIDValue< itk::VectorImage<uint8_t , UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::SHORT:
       return ImageTypeToPixelIDValue< itk::VectorImage<int16_t, UnusedDimension> >::Result;
@@ -313,10 +367,22 @@ ImageReaderBase
       return ImageTypeToPixelIDValue< itk::VectorImage<uint32_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::LONG:
-      return ImageTypeToPixelIDValue< itk::VectorImage<long, UnusedDimension> >::Result;
+      if (sizeof(long) == 4 )
+        return ImageTypeToPixelIDValue< itk::VectorImage<int32_t, UnusedDimension> >::Result;
+      else
+        return ImageTypeToPixelIDValue< itk::VectorImage<int64_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::ULONG:
-      return ImageTypeToPixelIDValue< itk::VectorImage<unsigned long, UnusedDimension> >::Result;
+      if (sizeof(unsigned long) == 4 )
+        return ImageTypeToPixelIDValue< itk::VectorImage<uint32_t, UnusedDimension> >::Result;
+      else
+        return ImageTypeToPixelIDValue< itk::VectorImage<uint64_t, UnusedDimension> >::Result;
+      break;
+    case itk::ImageIOBase::LONGLONG:
+      return ImageTypeToPixelIDValue< itk::VectorImage<int64_t, UnusedDimension> >::Result;
+      break;
+    case itk::ImageIOBase::ULONGLONG:
+      return ImageTypeToPixelIDValue< itk::VectorImage<uint64_t, UnusedDimension> >::Result;
       break;
     case itk::ImageIOBase::FLOAT:
       return ImageTypeToPixelIDValue< itk::VectorImage<float, UnusedDimension> >::Result;

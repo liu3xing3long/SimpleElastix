@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 project(SimpleITKExamples)
 
 foreach(p
@@ -14,6 +14,9 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL "SimpleITK")
   find_package(SimpleITK REQUIRED)
   include(${SimpleITK_USE_FILE})
 endif()
+
+option(SimpleITK_TESTING_NOSHOW "Disable the Show function in SimpleITK testing." ON)
+mark_as_advanced(SimpleITK_TESTING_NOSHOW)
 
 # Add individual cxx executables
 add_executable ( elx elx.cxx )
@@ -34,10 +37,9 @@ add_subdirectory(ITKIntegration)
 
 # Test data directory
 set(TEST_HARNESS_TEMP_DIRECTORY ${SimpleITK_BINARY_DIR}/Testing/Temporary)
-set(TEST_HARNESS_DATA_DIRECTORY ${SimpleITK_BINARY_DIR}/ExternalData/Testing/Data)
-set(ITK_TEST_DRIVER  "$<TARGET_FILE:itkTestDriver>")
 
 # Add example organized sub-directories with multiple languages
+add_subdirectory(HelloWorld)
 add_subdirectory(SimpleGaussian)
 add_subdirectory(ImageRegistrationMethod1)
 add_subdirectory(ImageRegistrationMethod2)
@@ -45,6 +47,7 @@ add_subdirectory(ImageRegistrationMethod3)
 add_subdirectory(ImageRegistrationMethod4)
 add_subdirectory(ImageRegistrationMethodBSpline1)
 add_subdirectory(ImageRegistrationMethodBSpline2)
+add_subdirectory(ImageRegistrationMethodBSpline3)
 add_subdirectory(ImageRegistrationMethodDisplacement1)
 add_subdirectory(ImageRegistrationMethodExhaustive)
 add_subdirectory(N4BiasFieldCorrection)

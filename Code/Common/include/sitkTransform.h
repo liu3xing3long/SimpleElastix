@@ -28,7 +28,7 @@ namespace itk
 {
 
 // Forward declaration for pointer
-// After ITK_VERSION 4.5 (Acutally after June 20th, 2013) the ITK Transform
+// After ITK_VERSION 4.5 (Actually after June 20th, 2013) the ITK Transform
 // classes are now templated.  This requires forward declarations to be defined
 // differently.
 #if ( ( SITK_ITK_VERSION_MAJOR == 4 ) && ( SITK_ITK_VERSION_MINOR < 5 ) )
@@ -63,7 +63,8 @@ enum TransformEnum { sitkIdentity,
 };
 
 
-/** \brief A simplified wrapper around a variety of ITK transforms.
+/** \class Transform
+ * \brief A simplified wrapper around a variety of ITK transforms.
  *
  * The interface to ITK transform objects to be used with the
  * ImageRegistrationMethod, ResampleImageFilter and other SimpleITK
@@ -95,10 +96,10 @@ public:
    */
   template<unsigned int NDimension>
   explicit Transform( itk::CompositeTransform< double, NDimension >* compositeTransform )
-    : m_PimpleTransform( NULL )
+    : m_PimpleTransform( SITK_NULLPTR )
     {
       sitkStaticAssert( NDimension == 2 || NDimension == 3, "Only 2D and 3D transforms are supported" );
-      if ( compositeTransform == NULL )
+      if ( compositeTransform == SITK_NULLPTR )
         {
         sitkExceptionMacro( "Unable to construct a null transform!" );
         }
@@ -142,11 +143,11 @@ public:
 
   /** Get access to internal ITK data object.
    *
-   * The return value should imediately be assigned to as
+   * The return value should immediately be assigned to as
    * itk::SmartPointer.
    *
-   * In many cases the value may need to be dynamically casted to
-   * the the actual transform type.
+   * In many cases the value may need to be dynamically cast to
+   * the actual transform type.
    *
    * @{
    */
@@ -164,20 +165,55 @@ public:
    * @{
    */
   void SetParameters ( const std::vector<double>& parameters );
-  std::vector<double> GetParameters( void ) const ;
+  std::vector<double> GetParameters( void ) const;
   /**@}*/
+
+  /** Return the number of optimizable parameters */
+  unsigned int GetNumberOfParameters( void ) const;
 
   /** Set/Get Fixed Transform Parameter
    * @{
    */
   void SetFixedParameters ( const std::vector<double>& parameters );
-  std::vector<double> GetFixedParameters( void ) const ;
+  std::vector<double> GetFixedParameters( void ) const;
   /**@}*/
+
+  /** Get the number of fixed parameters */
+  unsigned int GetNumberOfFixedParameters( void ) const;
 
   // Make composition
   SITK_RETURN_SELF_TYPE_HEADER AddTransform( Transform t );
 
+
+  /** \brief Remove nested composite transforms
+   *
+   * This method has no effect on non-composite transforms.
+   *
+   * If this transform is a composite which contains another nested
+   * composite transform, then the nested composite's transforms are
+   * placed into this transform. Nested composite transform may not be
+   * written to a file.
+   */
+   SITK_RETURN_SELF_TYPE_HEADER FlattenTransform();
+
+  /** Apply transform to a point.
+   *
+   * The dimension of the point must match the transform.
+   */
   std::vector< double > TransformPoint( const std::vector< double > &point ) const;
+
+  /** Apply transform to a vector at a point.
+   *
+   * The ITK concept of a vector is a direction at a specific point,
+   * for example the difference between two points is a vector.
+   *
+   * For linear transforms the point does not matter, in general
+   * the vector is transformed by the Jacobian with respect to point
+   * position.
+   *
+   * The dimension of the vector and point must match the transform.
+   */
+  std::vector< double > TransformVector( const std::vector< double > &vector, const std::vector< double > &point) const;
 
   // write
   void WriteTransform( const std::string &filename ) const;
@@ -235,7 +271,7 @@ protected:
 private:
 
   template< unsigned int VDimension>
-  void InternalInitialization( TransformEnum type, itk::TransformBase *base = NULL );
+  void InternalInitialization( TransformEnum type, itk::TransformBase *base = SITK_NULLPTR );
 
   struct TransformTryCastVisitor
   {
