@@ -1,4 +1,4 @@
-cmake_minimum_required ( VERSION 2.8.1 FATAL_ERROR )
+cmake_minimum_required ( VERSION 3.10 FATAL_ERROR )
 
 project( SimpleITK_R )
 
@@ -8,6 +8,7 @@ find_package ( R REQUIRED )
 include_directories ( ${SimpleITK_INCLUDE_DIRS} )
 
 set_source_files_properties ( SimpleITK.i PROPERTIES CPLUSPLUS ON )
+set_source_files_properties ( SimpleITK.i PROPERTIES SWIG_FLAGS "-namespace" )
 
 # Run swig
 set(CMAKE_SWIG_FLAGS ${CMAKE_SWIG_GLOBAL_FLAGS})
@@ -69,52 +70,49 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/DESCRIPTION"
     @ONLY )
 
-# download sample images and tar of Rd files, if allowed
-if(NOT SimpleITK_FORBID_DOWNLOADS)
-  include(sitkExternalData)
+# Use ExternalData module to either download data to get from local
+# data store.
+include(sitkExternalData)
 
+file( GLOB_RECURSE image_links RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/SimpleITK/inst/extdata/*.md5" )
 
-  file( GLOB_RECURSE image_links RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/SimpleITK/data/*.md5" )
-
-  foreach(link ${image_links})
-    string( REGEX REPLACE "\\.md5$" "" link ${link} )
-    ExternalData_Expand_Arguments(  SimpleITKRpackageData
-      image_location
-      DATA{${link}}
-      )
-    set( COPY_DATA_COMMAND ${COPY_DATA_COMMAND} COMMAND ${CMAKE_COMMAND} -E copy ${image_location} ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/data/ )
-  endforeach()
-
-
-  # The downloaded tar ball of documentation has been generated with
-  # the "Utilities/GenerateDocs/SwigDocUpdate.sh". This documentation
-  # should be generated for each release.
-  file( GLOB_RECURSE doc_links RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/SimpleITK/man/*.md5" )
-
-  foreach(link ${doc_links})
-    string( REGEX REPLACE "\\.md5$" "" link ${link} )
-    ExternalData_Expand_Arguments(  SimpleITKRpackageData
-      doc_location
-      DATA{${link}}
-      )
-    set( EXTRACT_RMAN_COMMAND  ${EXTRACT_RMAN_COMMAND} COMMAND ${CMAKE_COMMAND} -E tar xzf ${doc_location}
-      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/man/" )
-  endforeach()
-
-
-  if(COMMAND ExternalData_Add_Target )
-    ExternalData_Add_Target( SimpleITKRpackageData )
-  endif()
-  add_dependencies( ${SWIG_MODULE_SimpleITK_TARGET_NAME} SimpleITKRpackageData )
-
-  # copy sample images and extract documentation - used in vignette
-  add_custom_command( TARGET ${SWIG_MODULE_SimpleITK_TARGET_NAME}
-    PRE_BUILD
-      ${COPY_DATA_COMMAND}
-      ${EXTRACT_RMAN_COMMAND}
+foreach(link ${image_links})
+  string( REGEX REPLACE "\\.md5$" "" link ${link} )
+  ExternalData_Expand_Arguments(  SimpleITKRpackageData
+    image_location
+    DATA{${link}}
     )
+  set( COPY_DATA_COMMAND ${COPY_DATA_COMMAND} COMMAND ${CMAKE_COMMAND} -E copy ${image_location} ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/inst/extdata/ )
+endforeach()
 
+
+# The downloaded tar ball of documentation has been generated with
+# the "Utilities/GenerateDocs/SwigDocUpdate.sh". This documentation
+# should be generated for each release.
+file( GLOB_RECURSE doc_links RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Packaging/SimpleITK/man/*.md5" )
+
+foreach(link ${doc_links})
+  string( REGEX REPLACE "\\.md5$" "" link ${link} )
+  ExternalData_Expand_Arguments(  SimpleITKRpackageData
+    doc_location
+    DATA{${link}}
+    )
+  set( EXTRACT_RMAN_COMMAND  ${EXTRACT_RMAN_COMMAND} COMMAND ${CMAKE_COMMAND} -E tar xzf ${doc_location}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/man/" )
+endforeach()
+
+
+if(COMMAND ExternalData_Add_Target )
+  ExternalData_Add_Target( SimpleITKRpackageData )
 endif()
+add_dependencies( ${SWIG_MODULE_SimpleITK_TARGET_NAME} SimpleITKRpackageData )
+
+# copy sample images and extract documentation - used in vignette
+add_custom_command( TARGET ${SWIG_MODULE_SimpleITK_TARGET_NAME}
+  PRE_BUILD
+  ${COPY_DATA_COMMAND}
+  ${EXTRACT_RMAN_COMMAND}
+  )
 
 if(BUILD_SHARED_LIBS AND DEFINED SimpleITK_LIBRARY_OUTPUT_DIRECTORY)
   if(TARGET itkTestDriver)
@@ -127,8 +125,23 @@ endif()
 add_custom_command( TARGET ${SWIG_MODULE_SimpleITK_TARGET_NAME}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/R_libs
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/SimpleITK.R ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/R/
   # install for running tests and create binary package
+  COMMAND ${CMD_PREFIX} ${R_COMMAND} -f ${CMAKE_CURRENT_SOURCE_DIR}/processSwigCode.R --args ${CMAKE_CURRENT_BINARY_DIR}/SimpleITK.R ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/R/SimpleITK.R ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/man/hidden_methods.Rd
+  COMMAND ${CMD_PREFIX} ${R_COMMAND} -f ${CMAKE_CURRENT_SOURCE_DIR}/mkNamespace.R --args ${CMAKE_CURRENT_BINARY_DIR}/NAMESPACE ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK/NAMESPACE
   COMMAND ${CMD_PREFIX} ${R_COMMAND} CMD INSTALL --build ${CMAKE_CURRENT_BINARY_DIR}/Packaging/SimpleITK --library=${CMAKE_CURRENT_BINARY_DIR}/R_libs --no-multiarch
   COMMENT "Installing R package for testing and building binary version for distribution"
   )
+
+if (NOT CMAKE_PROJECT_NAME STREQUAL "SimpleITK" AND BUILD_TESTING)
+  set(WRAP_R 1)
+
+  add_subdirectory("${SimpleITK_SOURCE_DIR}/Testing/Unit/R" "${CMAKE_BINARY_DIR}/Testing/Unit")
+
+  if(BUILD_EXAMPLES)
+    add_subdirectory("${SimpleITK_SOURCE_DIR}/Examples" "${CMAKE_BINARY_DIR}/Examples")
+  endif()
+
+  if(COMMAND ExternalData_Add_Target )
+    ExternalData_Add_Target( SimpleITKData )
+  endif()
+endif()

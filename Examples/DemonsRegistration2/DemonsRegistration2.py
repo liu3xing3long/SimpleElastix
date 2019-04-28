@@ -39,15 +39,18 @@ moving = sitk.ReadImage(sys.argv[2])
 
 matcher = sitk.HistogramMatchingImageFilter()
 if ( fixed.GetPixelID() in ( sitk.sitkUInt8, sitk.sitkInt8 ) ):
-     matcher.SetNumberOfHistogramLevels(128)
+    matcher.SetNumberOfHistogramLevels(128)
 else:
-     matcher.SetNumberOfHistogramLevels(1024)
+    matcher.SetNumberOfHistogramLevels(1024)
 matcher.SetNumberOfMatchPoints(7)
 matcher.ThresholdAtMeanIntensityOn()
 moving = matcher.Execute(moving,fixed)
 
+# The fast symmetric forces Demons Registration Filter
+# Note there is a whole family of Demons Registration algorithms included in SimpleITK
 demons = sitk.FastSymmetricForcesDemonsRegistrationFilter()
 demons.SetNumberOfIterations(200)
+# Standard deviation for Gaussian smoothing of displacement field
 demons.SetStandardDeviations(1.0)
 
 demons.AddCommand( sitk.sitkIterationEvent, lambda: command_iteration(demons) )
@@ -87,5 +90,5 @@ if (not "SITK_NOSHOW" in os.environ):
     out = resampler.Execute(moving)
     simg1 = sitk.Cast(sitk.RescaleIntensity(fixed), sitk.sitkUInt8)
     simg2 = sitk.Cast(sitk.RescaleIntensity(out), sitk.sitkUInt8)
-    cimg = sitk.Compose(simg1, simg2, simg1/2.+simg2/2.)
+    cimg = sitk.Compose(simg1, simg2, simg1//2.+simg2//2.)
     sitk.Show( cimg, "DeformableRegistration1 Composition" )

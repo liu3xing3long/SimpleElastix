@@ -42,14 +42,38 @@ class SmartPointer;
 namespace simple
 {
 
-  // This is the foward declaration of a class used internally to the
+  // This is the forward declaration of a class used internally to the
   // Image class, but the actually interface is not exposed to simple
   // ITK. A pointer to the implementation is used as per the pimple
   // idiom.
   class PimpleImageBase;
 
   /** \class Image
-   * \brief The main Image class for SimpleITK
+   * \brief The Image class for SimpleITK
+   *
+   * This Image class can represent 2D, 3D, and 4D images. The pixel
+   * types may be a scalar, a multi-component vector or a
+   * run-length-encoded (RLE) "label". The dimension, pixel type and
+   * size is specified at construction.
+   *
+   * A fundamental concept of ITK images is that they occupy physical
+   * space where the image is defined by an origin, spacing, and
+   * direction cosine matrix. The attributes are taken into
+   * consideration when doing most operations on an image. A meta-data
+   * dictionary is also associated with the image, which may contain
+   * additional fields from reading but these attributes are not
+   * propagated by image filters.
+   *
+   * The SimpleITK Image provides a single facade interface to several
+   * ITK image types. Internally, the SimpleITK Image maintains a
+   * pointer to the ITK image class, and performs reference counting
+   * and lazy copying. This means that deep copying of an image
+   * including it's buffer is delayed until the image is
+   * modified. This removes the need to use pointers to SimpleITK
+   * Image class, as copying and returning by value do not
+   * unnecessarily duplicate the data.
+   *
+   * /sa itk::Image itk::VectorImage itk::LabelMap itk::ImageBase
    */
   class SITKCommon_EXPORT Image
   {
@@ -104,7 +128,7 @@ namespace simple
      */
     template <typename TImageType>
     explicit Image( itk::SmartPointer<TImageType> image )
-      : m_PimpleImage( NULL )
+      : m_PimpleImage( SITK_NULLPTR )
       {
         sitkStaticAssert( ImageTypeToPixelIDValue<TImageType>::Result != (int)sitkUnknown,
                           "invalid pixel type" );
@@ -112,7 +136,7 @@ namespace simple
       }
     template <typename TImageType>
     explicit Image( TImageType* image )
-      : m_PimpleImage( NULL )
+      : m_PimpleImage( SITK_NULLPTR )
       {
         sitkStaticAssert( ImageTypeToPixelIDValue<TImageType>::Result != (int)sitkUnknown,
                           "invalid pixel type" );
@@ -122,11 +146,11 @@ namespace simple
 
     /** Get access to internal ITK data object.
      *
-     * The return value should imediately be assigned to as
+     * The return value should immediately be assigned to as
      * itk::SmartPointer.
      *
      * In many cases the value may need to be dynamically casted to
-     * the the actual image type. The GetPixelIDValue() method should
+     * the actual image type. The GetPixelIDValue() method should
      * return an PixelID which identifies the image type which the
      * DataObject points to.
      *
@@ -136,10 +160,25 @@ namespace simple
     const itk::DataObject* GetITKBase( void ) const;
     /**@}*/
 
-    // could return -1 if in valid
+    /** Get the pixel type
+     *
+     * The pixel type is set at construction type and can not be
+     * manually changed, unless by assignment. The value may be -1 or
+     * "Unknown".
+     */
     PixelIDValueEnum GetPixelID( void ) const;
     PixelIDValueType GetPixelIDValue( void ) const;
 
+    /** Return the pixel type as a human readable string value. */
+    std::string GetPixelIDTypeAsString( void ) const;
+
+    /** Get the number of physical dimensions.
+     *
+     * Only the spatial dimensions are considered here. These are the
+     * dimensions the origin, spacing and direction cosine matrix are
+     * applicable to. This does not include the pixels' vector index
+     * as a dimension.
+     */
     unsigned int GetDimension( void ) const;
 
     /** \brief Get the number of components for each pixel
@@ -159,14 +198,17 @@ namespace simple
      */
     uint64_t GetNumberOfPixels( void ) const;
 
-    /** Get/Set the Origin
+    /** Get/Set the Origin in physical space
      * @{
      */
     std::vector< double > GetOrigin( void ) const;
     void SetOrigin( const std::vector< double > &origin );
     /** @} */
 
-    /** Get/Set the Spacing
+    /** Get/Set the Spacing of the Image as an std::vector .
+     *
+     * The spacing describes the physical size of each pixel. The
+     * length of the vector is equal to the dimension of the Image.
      * @{
      */
     std::vector< double > GetSpacing( void ) const;
@@ -176,7 +218,7 @@ namespace simple
     /** \brief Set/Get the Direction
      *
      * Internally, the Direction is represented by a matrix 2x2 for a
-     * 2D and and 3x3 for a 3D image. The matrix is passed as a 1D
+     * 2D and 3x3 for a 3D image. The matrix is passed as a 1D
      * array in row-major form.
      * @{
      */
@@ -196,10 +238,19 @@ namespace simple
     /** Transform continuous index to physical point */
     std::vector< double > TransformContinuousIndexToPhysicalPoint( const std::vector< double > &index) const;
 
+    /** Get the number of pixels the Image is in each dimension as a
+      * std::vector. The size of the vector is equal to the number of dimensions
+      * for the image. */
     std::vector< unsigned int > GetSize( void ) const;
 
-    unsigned int GetHeight( void ) const;
+    /** Get the number of pixels the Image is in the first dimension */
     unsigned int GetWidth( void ) const;
+
+    /** Get the number of pixels the Image is in the second dimension */
+    unsigned int GetHeight( void ) const;
+
+    /** Get the number of pixels the Image is in the third dimension
+      * or 0 if the Image is only 2D */
     unsigned int GetDepth( void ) const;
 
 
@@ -249,8 +300,6 @@ namespace simple
      * removed, false otherwise.
      */
     bool EraseMetaData( const std::string &key );
-
-    std::string GetPixelIDTypeAsString( void ) const;
 
     std::string ToString( void ) const;
 
@@ -432,18 +481,18 @@ namespace simple
      * This is the single method which needs to be explicitly
      * instantiated to separate the internal ITK and Pimple image from
      * the external SimpleITK interface. Template parameters have been
-     * choosen carefully to flexibly enable this.
+     * chosen carefully to flexibly enable this.
      */
     template <int VPixelIDValue, unsigned int VImageDimension>
     void InternalInitialization( typename PixelIDToImageType<typename typelist::TypeAt<InstantiatedPixelIDTypeList,
                                                                                        VPixelIDValue>::Result,
                                                              VImageDimension>::ImageType *i );
 
-    /** Dispatched from the InternalInitialization method. The enable
-     * if idiom is used here for method overloading. The second method
-     * is for non-instantiated image, which turn into a void pointer
-     * for the paramter. However, this second method should never be
-     * executed.
+    /** Dispatched from the InternalInitialization method. The
+     * "enable-if" idiom is used here for method overloading. The
+     * second method is for non-instantiated image, which turn into a
+     * void pointer for the parameter. However, this second method
+     * should never be executed.
      * @{
      */
     template<int VPixelIDValue, typename TImageType>

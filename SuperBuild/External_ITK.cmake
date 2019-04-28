@@ -19,14 +19,19 @@ if(NOT DEFINED Module_ITKReview)
   set(Module_ITKReview ON)
 endif()
 
+if(NOT DEFINED Module_SimpleITKFilters)
+  set(Module_SimpleITKFilters ON)
+endif()
+
 
 get_cmake_property( _varNames VARIABLES )
 
 foreach (_varName ${_varNames})
   if(_varName MATCHES "^ITK_"
       OR _varName MATCHES "^ITKV3"
+      OR _varName MATCHES "^ITKV4"
       OR _varName MATCHES "FFTW"
-      OR _varName MATCHES "^Module_ITK")
+      OR _varName MATCHES "^Module_")
     message( STATUS "Passing variable \"${_varName}=${${_varName}}\" to ITK external project.")
     list(APPEND ITK_VARS ${_varName})
   endif()
@@ -41,17 +46,22 @@ VariableListToArgs( ITK_VARS  ep_itk_args )
 
 
 set(proj ITK)  ## Use ITK convention of calling it ITK
-if(NOT DEFINED ITK_REPOSITORY)
-  set(ITK_REPOSITORY "${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git")
-endif()
+
+
+set(ITK_GIT_REPOSITORY "${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git" CACHE STRING "URL of ITK Git repository")
+mark_as_advanced(ITK_GIT_REPOSITORY)
+sitk_legacy_naming(ITK_GIT_REPOSITORY ITK_REPOSITORY)
+
+set(ITK_GIT_TAG "4a6e8c84198a741d18a2a39e616c26dda09b6686" CACHE
+  STRING "Tag in ITK git repo") # release-4.13
+mark_as_advanced(ITK_GIT_TAG)
+set(ITK_TAG_COMMAND GIT_TAG "${ITK_GIT_TAG}")
 
 set(ITK_USE_GIT_PROTOCOL 0)
 if("${git_protocol}" STREQUAL "git")
   set(ITK_USE_GIT_PROTOCOL 1)
 endif()
 
-# NOTE: it is very important to update the ITK_DIR path with the ITK version
-set(ITK_TAG_COMMAND GIT_TAG v4.12.2) # v4.12.2 tag
 
 if( ${BUILD_SHARED_LIBS} )
   set( ITK_BUILD_SHARED_LIBS ON )
@@ -66,7 +76,7 @@ endif()
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${proj}-build/CMakeCacheInit.txt" "${ep_itk_cache}\n${ep_common_cache}" )
 
 ExternalProject_Add(${proj}
-  GIT_REPOSITORY ${ITK_REPOSITORY}
+  GIT_REPOSITORY ${ITK_GIT_REPOSITORY}
   ${ITK_TAG_COMMAND}
   UPDATE_COMMAND ""
   SOURCE_DIR ${proj}
@@ -76,6 +86,7 @@ ExternalProject_Add(${proj}
   -DCMAKE_TOOLCHAIN_FILE:FILEPATH=${CMAKE_TOOLCHAIN_FILE}
   --no-warn-unused-cli
   -C "${CMAKE_CURRENT_BINARY_DIR}/${proj}-build/CMakeCacheInit.txt"
+  -DITK_LEGACY_REMOVE:BOOL=ON
   ${ep_itk_args}
   ${ep_common_args}
   -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
@@ -85,9 +96,9 @@ ExternalProject_Add(${proj}
   -DBUILD_SHARED_LIBS:BOOL=${ITK_BUILD_SHARED_LIBS}
   -DCMAKE_SKIP_RPATH:BOOL=ON
   -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-  -DITK_LEGACY_REMOVE:BOOL=ON
   -DITK_USE_KWSTYLE:BOOL=OFF
   -DITK_USE_GIT_PROTOCOL:BOOL=${ITK_USE_GIT_PROTOCOL}
+  -DITK_INSTALL_PACKAGE_DIR=lib/cmake/ITK
   BUILD_COMMAND ${BUILD_COMMAND_STRING}
   DEPENDS
     ${ITK_DEPENDENCIES}
@@ -95,5 +106,5 @@ ExternalProject_Add(${proj}
   )
 
 
-ExternalProject_Get_Property(ITK install_dir)
-set(ITK_DIR "${install_dir}/lib/cmake/ITK-4.12" )
+ExternalProject_Get_Property(${proj} install_dir)
+set(ITK_DIR "${install_dir}/lib/cmake/ITK")

@@ -2,35 +2,14 @@
 set ( ITK_NO_IO_FACTORY_REGISTER_MANAGER 1 )
 include(${ITK_USE_FILE})
 
+
+# Test data directory
+set(TEST_HARNESS_TEMP_DIRECTORY ${SimpleITK_BINARY_DIR}/Testing/Temporary)
+set(TEST_HARNESS_DATA_DIRECTORY ${ExternalData_BINARY_ROOT}/Testing/Data)
+
+add_subdirectory(TestBase)
+
 include(sitkUseGTest)
-
-set ( SimpleITKUnitTestSourceBase
-  SimpleITKTestHarness.cxx
-  sitkImageCompare.cxx
-  sitkTransformCompare.cxx
-)
-add_library ( SimpleITKUnitTestBase STATIC ${SimpleITKUnitTestSourceBase} )
-add_dependencies( SimpleITKUnitTestBase BasicFiltersSourceCode  )
-target_link_libraries( SimpleITKUnitTestBase GTest::GTest ${SimpleITK_LIBRARIES} ${ITK_LIBRARIES} )
-target_include_directories( SimpleITKUnitTestBase
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-)
-target_compile_options( SimpleITKUnitTestBase
-  PUBLIC
-    ${SimpleITK_PUBLIC_COMPILE_OPTIONS}
-  PRIVATE
-    ${SimpleITK_PRIVATE_COMPILE_OPTIONS} )
-
-
-add_executable( sitkCompareDriver sitkCompareDriver.cxx )
-target_link_libraries( sitkCompareDriver SimpleITKUnitTestBase ${SimpleITK_LIBRARIES} ${ITK_LIBRARIES})
-target_compile_options( sitkCompareDriver
-  PRIVATE
-    ${SimpleITK_PRIVATE_COMPILE_OPTIONS} )
-
-sitk_install_exported_target(sitkCompareDriver)
 
 # Find tests generated in the binary directory
 # To add a new file, just add it to this list.  Any GoogleTests inside will be automatically
@@ -55,11 +34,16 @@ set ( SimpleITKUnitTestSource
   sitkElastixFilterTests.cxx
   sitkTransformixImageFilterTests.cxx
   sitkTransformixFilterTests.cxx
+  sitkImageViewerTest.cxx
   )
 
 if ( SimpleITK_4D_IMAGES )
   list(APPEND SimpleITKUnitTestSource sitkImage4DTests.cxx )
 endif()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sitkImageViewerTest.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/sitkImageViewerTest.h ESCAPE_QUOTES)
+
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CTest)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/PythonTests)
@@ -70,17 +54,16 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/RubyTests)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/JavaTests)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/CSharpTests)
 
-# Test data directory
-set(TEST_HARNESS_TEMP_DIRECTORY ${SimpleITK_BINARY_DIR}/Testing/Temporary)
-set(TEST_HARNESS_DATA_DIRECTORY ${SimpleITK_BINARY_DIR}/ExternalData/Testing/Data)
-
-set( ITK_TEST_DRIVER  "$<TARGET_FILE:itkTestDriver>" )
 
 # Adjust Python to run in the virtualenv
 set( PythonVirtualenvHome  ${SimpleITK_BINARY_DIR}/Testing/Installation/PythonVirtualenv )
 
 
 add_executable(SimpleITKUnitTestDriver0 SimpleITKUnitTestDriver.cxx ${SimpleITKUnitTestSource})
+target_include_directories(SimpleITKUnitTestDriver0
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
 target_link_libraries ( SimpleITKUnitTestDriver0 GTest::GTest SimpleITKUnitTestBase ${SimpleITK_LIBRARIES} ${ITK_LIBRARIES} )
 target_compile_options( SimpleITKUnitTestDriver0
   PRIVATE
@@ -257,10 +240,6 @@ target_compile_options( SimpleITKUnitTestDriver${_exec_i}
   PRIVATE
     ${SimpleITK_PRIVATE_COMPILE_OPTIONS} )
 
-# Set some variables
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SimpleITKTestHarnessPaths.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/SimpleITKTestHarnessPaths.h ESCAPE_QUOTES)
-
 add_custom_target(WrappedGeneratedTests ALL
   DEPENDS ${WRAPPED_GENERATED_TEST_SOURCE}
 )
@@ -283,22 +262,54 @@ target_compile_options( sitkShowTest
 
 add_executable( sitkSystemInformationTest sitkSystemInformationTest.cxx )
 target_link_libraries( sitkSystemInformationTest ${SimpleITK_LIBRARIES} ${ITK_LIBRARIES})
-add_test( NAME sitkSystemInformaionTest COMMAND sitkSystemInformationTest ${CMAKE_BINARY_DIR} )
+add_test( NAME sitkSystemInformationTest COMMAND sitkSystemInformationTest ${CMAKE_BINARY_DIR} )
 target_compile_options( sitkSystemInformationTest
   PRIVATE
     ${SimpleITK_PRIVATE_COMPILE_OPTIONS} )
 
 
+ # CMake 3.10 added this method, to avoid configure time introspection
+if(NOT CMAKE_CROSSCOMPILING)
+   gtest_discover_tests( SimpleITKUnitTestDriver0 DISCOVERY_TIMEOUT 15 )
+ else()
+   gtest_add_tests(SimpleITKUnitTestDriver0 "" ${SimpleITKUnitTestSource})
+endif()
 
-gtest_add_tests(SimpleITKUnitTestDriver0 "" ${SimpleITKUnitTestSource})
+ExternalData_Expand_Arguments(  SimpleITKData
+  unused_argument
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/affine_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/displacement_-13x-17y.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/quaternion_rigid_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/scale_logarithmic_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/translation_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/composite_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/scale_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/translation_-13x-17y.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Input/xforms/versor_i_3.txt}
+  DATA{${SimpleITK_DATA_ROOT}/Baseline/BasicFilters_TransformToDisplacementFieldFilter_defaults.nrrd}
+  DATA{${SimpleITK_DATA_ROOT}/Baseline/BasicFilters_TransformToDisplacementFieldFilter_32.nrrd}
+  )
 
+ExternalData_Expand_Arguments(  SimpleITKData
+  unused_argument
+  DATA{${SimpleITK_DATA_ROOT}/Input/2th_cthead1.mha}
+  DATA{${SimpleITK_DATA_ROOT}/Input/2th_cthead1.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/points_5d.mha}
+  DATA{${SimpleITK_DATA_ROOT}/Input/4D.nii.gz}
+  DATA{${SimpleITK_DATA_ROOT}/Input/BlackDots.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/BrainProtonDensitySliceBorder20.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/BrainProtonDensitySliceShifted13x17y.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/cthead1-Float.mha}
+  DATA{${SimpleITK_DATA_ROOT}/Input/cthead1.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/RA-Float.nrrd}
+  DATA{${SimpleITK_DATA_ROOT}/Input/RA-Short.nrrd}
+  DATA{${SimpleITK_DATA_ROOT}/Input/RA-Slice-Short.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/VM1111Shrink-RGB.png}
+  DATA{${SimpleITK_DATA_ROOT}/Input/WhiteDots.png}
+  )
 
-#######################################################
-#
-# Tests which use the itkTestDriver
-#
-#######################################################
-
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/AdditionalTests.cmake)
-
+add_subdirectory(Python)
+add_subdirectory(R)
+add_subdirectory(Java)
+add_subdirectory(CSharp)

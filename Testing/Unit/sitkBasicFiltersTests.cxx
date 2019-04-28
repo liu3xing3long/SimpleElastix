@@ -26,7 +26,6 @@
 #include <sitkCastImageFilter.h>
 #include <sitkPixelIDValues.h>
 #include <sitkStatisticsImageFilter.h>
-#include <sitkLabelStatisticsImageFilter.h>
 #include <sitkExtractImageFilter.h>
 #include <sitkFastMarchingBaseImageFilter.h>
 #include <sitkInverseDeconvolutionImageFilter.h>
@@ -52,6 +51,7 @@
 #include <sitkLandmarkBasedTransformInitializerFilter.h>
 #include <sitkAdditionalProcedures.h>
 #include <sitkCommand.h>
+#include <sitkResampleImageFilter.h>
 
 #include "itkVectorImage.h"
 #include "itkVector.h"
@@ -693,10 +693,10 @@ TEST(BasicFilters,LandmarkBasedTransformInitializer) {
   EXPECT_ANY_THROW( filter.Execute( sitk::VersorTransform() ) );
 
   out = filter.Execute( sitk::VersorRigid3DTransform() );
-  EXPECT_VECTOR_DOUBLE_NEAR(v6(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), out.GetParameters(), 1e-25);
+  EXPECT_VECTOR_DOUBLE_NEAR(v6(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), out.GetParameters(), 1e-15);
 
   out = filter.Execute( sitk::ScaleVersor3DTransform() );
-  EXPECT_VECTOR_DOUBLE_NEAR(v9(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0), out.GetParameters(), 1e-25);
+  EXPECT_VECTOR_DOUBLE_NEAR(v9(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0), out.GetParameters(), 1e-15);
 
 
   out = filter.Execute( sitk::AffineTransform(2) );
@@ -896,6 +896,20 @@ TEST(BasicFilters,ResampleImageFilter_AdditionalProcedures)
                        img.GetSpacing(),
                        img.GetDirection() );
   EXPECT_EQ( "b187541bdcc89843d0a25a3761f344c358f3518a", sitk::Hash( out )) << " Procedural Interface 3 identity transform.";
+}
+
+TEST(BasicFilters,ResampleImageFilter_DefaultParameters)
+{
+  namespace sitk = itk::simple;
+
+  sitk::Image img(10,10,sitk::sitkUInt8);
+  sitk::ResampleImageFilter filter;
+
+  sitk::Image result = filter.Execute(img);
+
+  // Resample with default parameters returns a 0x0 image
+  EXPECT_EQ ( 0, result.GetWidth() );
+  EXPECT_EQ ( 0, result.GetHeight() );
 }
 
 

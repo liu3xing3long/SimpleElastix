@@ -15,13 +15,12 @@ set(${proj}_DOWNLOAD_SOURCE_HASH "44e19f4134906fe2d75124427dc9b716")
 set(${proj}_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/${proj}-prefix/src/${proj}-build)
 set(${proj}_source_dir ${CMAKE_CURRENT_BINARY_DIR}/${proj})
 set(${proj}_install_dir ${CMAKE_CURRENT_BINARY_DIR}/${proj})
-set(${proj}_URL "https://midas3.kitware.com/midas/api/rest?method=midas.bitstream.download&checksum=${${proj}_DOWNLOAD_SOURCE_HASH}&name=virtualenv-${${proj}_TARGET_VERSION}.tar.gz")
 
 sitkSourceDownload(${proj}_URL "virtualenv-${${proj}_TARGET_VERSION}.tar.gz" ${${proj}_DOWNLOAD_SOURCE_HASH})
 
 ExternalProject_Add(${proj}
   URL "${${proj}_URL}"
-  URL_MD5 ${${proj}_DOWNLOAD_SOURCE_HASH}
+  URL_HASH MD5=${${proj}_DOWNLOAD_SOURCE_HASH}
   SOURCE_DIR ${${proj}_source_dir}
   BINARY_DIR ${${proj}_binary_dir}
   INSTALL_DIR ${${proj}_install_dir}
