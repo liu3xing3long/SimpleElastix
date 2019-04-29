@@ -3,6 +3,7 @@
 
 #include "sitkCommon.h"
 #include "sitkImage.h"
+#include "sitkKernel.h"
 
 namespace itk
 {
@@ -89,22 +90,34 @@ public:
     Image
     Threshold( const Image &inputImage, double lower = 0.0, double upper = 255.0, double outsideValue = 0.0 );
     Image
-    BinaryThreshold( const Image &inputImage, double lower = 0.0, double upper = 255.0, uint8_t insideValue = 1u,
-                     uint8_t outsideValue = 0u );
+    BinaryThreshold( const Image &inputImage, double lowerThreshold = 0.0, double upperThreshold = 255.0, 
+                     uint8_t insideValue = 1u, uint8_t outsideValue = 0u );
     /*
      * morphology operations
      */
     Image
-    BinaryDilate( const Image &inputImage, unsigned int dilateRadius = 1 );
+    BinaryDilate( const Image &inputImage, unsigned int radius = 1 , KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True);
+    Image
+    BinaryDilate( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
     
     Image
-    BinaryErode( const Image &inputImage, unsigned int erodeRadius = 1 );
-    
+    BinaryErode( const Image &inputImage, unsigned int radius = 1 , KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
     Image
-    BinaryOpen( const Image &inputImage, unsigned int Radius = 1 );
-    
+    BinaryErode( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
+
     Image
-    BinaryClose( const Image &inputImage, unsigned int Radius = 1 );
+    BinaryOpen( const Image &inputImage, unsigned int radius = 1 , KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    Image
+    BinaryOpen( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
+
+    Image
+    BinaryClose( const Image &inputImage, unsigned int radius = 1 , KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    Image
+    BinaryClose( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
 
     /*
      * smooth filters

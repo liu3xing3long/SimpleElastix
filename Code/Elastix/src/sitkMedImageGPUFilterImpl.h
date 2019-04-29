@@ -85,17 +85,28 @@ public:
                      uint8_t outsideValue = 0u );
 
     Image
-    BinaryDilate( const Image &inputImage, unsigned int dilateRadius = 1 );
-    
+    BinaryDilate( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True);
     Image
-    BinaryErode( const Image &inputImage, unsigned int erodeRadius = 1 );
-    
-    Image
-    BinaryOpen( const Image &inputImage, unsigned int Radius = 1 );
-    
-    Image
-    BinaryClose( const Image &inputImage, unsigned int Radius = 1 );
+    BinaryDilate( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
 
+    Image
+    BinaryErode( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True);
+    Image
+    BinaryErode( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
+
+    Image
+    BinaryOpen( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    Image
+    BinaryOpen( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
+
+    Image
+    BinaryClose( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    Image
+    BinaryClose( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
+                 bool boundaryToForeground = True);
     
     Image
     Median( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) );

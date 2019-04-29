@@ -141,27 +141,48 @@ MedImageGPUFilter::Threshold( const Image &inputImage, double lower /* = 0.0 */,
 }
 
 Image
-MedImageGPUFilter::BinaryDilate( const Image &inputImage, unsigned int dilateRadius )
+MedImageGPUFilter::BinaryDilate( const Image &inputImage, unsigned int dilateRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
-    return this->m_Pimple->BinaryDilate( inputImage, dilateRadius );
+    return this->m_Pimple->BinaryDilate( inputImage, dilateRadius, kernel_type, boundaryToForeground);
+}
+
+Image MedImageGPUFilter::BinaryDilate(const Image &inputImage, const std::vector< unsigned int > &radius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    return this->m_Pimple->BinaryDilate(inputImage, radius, kernel_type, boundaryToForeground);
 }
 
 Image
-MedImageGPUFilter::BinaryErode( const Image &inputImage, unsigned int erodeRadius )
+MedImageGPUFilter::BinaryErode( const Image &inputImage, unsigned int erodeRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
-    return this->m_Pimple->BinaryErode( inputImage, erodeRadius );
+    return this->m_Pimple->BinaryErode( inputImage, erodeRadius, kernel_type, boundaryToForeground);
+}
+
+Image MedImageGPUFilter::BinaryErode(const Image &inputImage, const std::vector< unsigned int > &radius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    return this->m_Pimple->BinaryErode(inputImage, radius, kernel_type, boundaryToForeground);
 }
 
 Image
-MedImageGPUFilter::BinaryOpen( const Image &inputImage, unsigned int Radius )
+MedImageGPUFilter::BinaryOpen( const Image &inputImage, unsigned int radius, KernelEnum kernel_type, bool boundaryToForeground )
 {
-    return this->m_Pimple->BinaryOpen( inputImage, Radius );
+    return this->m_Pimple->BinaryOpen( inputImage, radius, kernel_type, boundaryToForeground);
+}
+
+Image MedImageGPUFilter::BinaryOpen(const Image &inputImage, const std::vector< unsigned int > &radius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    return this->m_Pimple->BinaryOpen(inputImage, radius, kernel_type, boundaryToForeground);
 }
 
 Image
-MedImageGPUFilter::BinaryClose( const Image &inputImage, unsigned int Radius )
+MedImageGPUFilter::BinaryClose( const Image &inputImage, unsigned int radius, KernelEnum kernel_type, bool boundaryToForeground )
 {
-    return this->m_Pimple->BinaryClose( inputImage, Radius );
+    return this->m_Pimple->BinaryClose( inputImage, radius, kernel_type, boundaryToForeground);
+}
+
+Image
+MedImageGPUFilter::BinaryClose( const Image &inputImage, const std::vector< unsigned int > &radius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    return this->m_Pimple->BinaryClose( inputImage, radius, kernel_type, boundaryToForeground);
 }
 
 Image

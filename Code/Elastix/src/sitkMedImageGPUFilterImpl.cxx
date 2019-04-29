@@ -229,7 +229,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Threshold( const Image &inputImage, do
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage, unsigned int dilateRadius )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage, unsigned int dilateRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
     Image outputImage;
     if ( !CheckImageDimension( inputImage ) )
@@ -244,7 +244,25 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, dilateRadius );
+
+    interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2
+        break;
+    case sitkBox:
+        interface_kernel_type = 3
+        break;
+    }
+
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, dilateRadius, interface_kernel_type, boundaryToForeground );
     
     if ( gpuImage.IsNotNull() )
     {
@@ -263,7 +281,58 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, unsigned int erodeRadius )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage, const std::vector< unsigned int > dilateRadius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    Image outputImage;
+    if ( !CheckImageDimension( inputImage ) )
+    {
+        std::cout << "Input Image Dimension or Spacing not Match" << std::endl;
+        return outputImage;
+    }
+    
+    // transform to elastix layer
+    elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
+            Cast( inputImage, sitkUInt8 ).GetITKBase() );
+
+    interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2
+        break;
+    case sitkBox:
+        interface_kernel_type = 3
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, dilateRadius, interface_kernel_type, boundaryToForeground );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        // Image outputImage;
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage.MakeUnique();
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+    }
+    
+    SAFE_DELETE( pInterface );
+    
+    return outputImage;
+}
+
+Image
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, unsigned int erodeRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
     Image outputImage;
     if ( !CheckImageDimension( inputImage ) )
@@ -278,7 +347,23 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, erodeRadius );
+    interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, erodeRadius, interface_kernel_type, boundaryToForeground  );
     
     if ( gpuImage.IsNotNull() )
     {
@@ -296,7 +381,57 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, unsigned int Radius )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, const std::vector< unsigned int > erodeRadius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    Image outputImage;
+    if ( !CheckImageDimension( inputImage ) )
+    {
+        std::cout << "Input Image Dimension or Spacing not Match, require " << std::endl;
+        return outputImage;
+    }
+    
+    // transform to elastix layer
+    elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
+            Cast( inputImage, sitkUInt8 ).GetITKBase() );
+    
+    interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, erodeRadius, interface_kernel_type, boundaryToForeground  );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        // Image outputImage;
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage.MakeUnique();
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+    }
+    
+    SAFE_DELETE( pInterface );
+    return outputImage;
+}
+
+Image
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, unsigned int Radius, KernelEnum kernel_type, bool boundaryToForeground )
 {
     // open means first erode then dilate
     Image outputImage;
@@ -313,7 +448,24 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, Radius );
+    interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, Radius, interface_kernel_type, boundaryToForeground  );
     
     if ( gpuImage.IsNotNull() )
     {
@@ -332,7 +484,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     pInterface = new elastix::CLGPUInterface();
     pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
-    gpuImage = pInterface->BinaryDilate( itkImage, Radius );
+    gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
     
     if ( gpuImage.IsNotNull() )
     {
@@ -349,9 +501,10 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, unsigned int Radius )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, const std::vector< unsigned int > Radius, 
+                                                      KernelEnum kernel_type, bool boundaryToForeground )
 {
-    // close means first dilate then erode
+    // open means first erode then dilate
     Image outputImage;
     if ( !CheckImageDimension( inputImage ) )
     {
@@ -360,13 +513,29 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     }
     
     ////////////////////////////////
-    // dilate
+    // erode
     elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
     pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, Radius );
+    unsigned int interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, Radius, interface_kernel_type, boundaryToForeground  );
     
     if ( gpuImage.IsNotNull() )
     {
@@ -385,7 +554,148 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     pInterface = new elastix::CLGPUInterface();
     pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
     
-    gpuImage = pInterface->BinaryErode( itkImage, Radius );
+    gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage.MakeUnique();
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+    }
+    
+    SAFE_DELETE( pInterface );
+    return outputImage;
+}
+
+Image
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, unsigned int Radius, KernelEnum kernel_type, bool boundaryToForeground )
+{
+    // close means first dilate then erode
+    Image outputImage;
+    if ( !CheckImageDimension( inputImage ) )
+    {
+        std::cout << "Input Image Dimension or Spacing not Match, require " << std::endl;
+        return outputImage;
+    }
+    
+    ////////////////////////////////
+    // dilate
+    elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
+            Cast( inputImage, sitkUInt8 ).GetITKBase() );
+    
+    unsigned int interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        SAFE_DELETE( pInterface );
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+        SAFE_DELETE( pInterface );
+        return outputImage;
+    }
+    
+    ///////////////////////////////////
+    // dilate
+    pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    gpuImage = pInterface->BinaryErode( itkImage, Radius, interface_kernel_type, boundaryToForeground  );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage.MakeUnique();
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+    }
+    
+    SAFE_DELETE( pInterface );
+    return outputImage;
+}
+
+Image
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, const std::vector< unsigned int > &Radius, 
+                                                       KernelEnum kernel_type, bool boundaryToForeground )
+{
+    // close means first dilate then erode
+    Image outputImage;
+    if ( !CheckImageDimension( inputImage ) )
+    {
+        std::cout << "Input Image Dimension or Spacing not Match, require " << std::endl;
+        return outputImage;
+    }
+    
+    ////////////////////////////////
+    // dilate
+    elastix::CLGPUInterface *pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
+            Cast( inputImage, sitkUInt8 ).GetITKBase() );
+    
+    unsigned int interface_kernel_type = 0;
+    swtich(kernel_type)
+    {
+    case sitkAnnulus:
+        interface_kernel_type = 0
+        break;
+    case sitkBox:
+        interface_kernel_type = 0
+        break;
+    case sitkBall:
+        interface_kernel_type = 0
+        break;
+    case sitkCross:
+        interface_kernel_type = 1
+        break;
+    }
+    elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
+    
+    if ( gpuImage.IsNotNull() )
+    {
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        SAFE_DELETE( pInterface );
+    }
+    else
+    {
+        std::cout << pInterface->GetLastError() << std::endl;
+        SAFE_DELETE( pInterface );
+        return outputImage;
+    }
+    
+    ///////////////////////////////////
+    // dilate
+    pInterface = new elastix::CLGPUInterface();
+    pInterface->Init( std::vector< unsigned int >( 1, 0 ), this->m_Verbose );
+    
+    gpuImage = pInterface->BinaryErode( itkImage, Radius, interface_kernel_type, boundaryToForeground  );
     
     if ( gpuImage.IsNotNull() )
     {
