@@ -85,28 +85,28 @@ public:
                      uint8_t outsideValue = 0u );
 
     Image
-    BinaryDilate( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True);
+    BinaryDilate( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = true);
     Image
     BinaryDilate( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
-                 bool boundaryToForeground = True);
+                 bool boundaryToForeground = true);
 
     Image
-    BinaryErode( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True);
+    BinaryErode( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = true);
     Image
     BinaryErode( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
-                 bool boundaryToForeground = True);
+                 bool boundaryToForeground = true);
 
     Image
-    BinaryOpen( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    BinaryOpen( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = true );
     Image
     BinaryOpen( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
-                 bool boundaryToForeground = True);
+                 bool boundaryToForeground = true);
 
     Image
-    BinaryClose( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = True );
+    BinaryClose( const Image &inputImage, unsigned int radius = 1, KernelEnum kernel_type = sitkBall, bool boundaryToForeground = true );
     Image
     BinaryClose( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) , KernelEnum kernel_type = sitkBall, 
-                 bool boundaryToForeground = True);
+                 bool boundaryToForeground = true);
     
     Image
     Median( const Image &inputImage, const std::vector< unsigned int > &radius = std::vector< unsigned int >( 3, 1 ) );

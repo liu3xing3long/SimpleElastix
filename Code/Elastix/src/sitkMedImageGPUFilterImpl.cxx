@@ -245,20 +245,20 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
 
-    interface_kernel_type = 0;
-    swtich(kernel_type)
+    unsigned int interface_kernel_type = 0;
+    switch (kernel_type)
     {
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
         break;
     case sitkAnnulus:
-        interface_kernel_type = 2
+        interface_kernel_type = 2;
         break;
     case sitkBox:
-        interface_kernel_type = 3
+        interface_kernel_type = 3;
         break;
     }
 
@@ -281,7 +281,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage, const std::vector< unsigned int > dilateRadius, KernelEnum kernel_type, bool boundaryToForeground )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage, const std::vector< unsigned int > &dilateRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
     Image outputImage;
     if ( !CheckImageDimension( inputImage ) )
@@ -297,20 +297,20 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
 
-    interface_kernel_type = 0;
-    swtich(kernel_type)
+    unsigned int interface_kernel_type = 0;
+    switch (kernel_type)
     {
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
         break;
     case sitkAnnulus:
-        interface_kernel_type = 2
+        interface_kernel_type = 2;
         break;
     case sitkBox:
-        interface_kernel_type = 3
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, dilateRadius, interface_kernel_type, boundaryToForeground );
@@ -347,20 +347,20 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    interface_kernel_type = 0;
-    swtich(kernel_type)
+    unsigned int interface_kernel_type = 0;
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, erodeRadius, interface_kernel_type, boundaryToForeground  );
@@ -381,7 +381,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, const std::vector< unsigned int > erodeRadius, KernelEnum kernel_type, bool boundaryToForeground )
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, const std::vector< unsigned int >& erodeRadius, KernelEnum kernel_type, bool boundaryToForeground )
 {
     Image outputImage;
     if ( !CheckImageDimension( inputImage ) )
@@ -397,20 +397,20 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
     
-    interface_kernel_type = 0;
-    swtich(kernel_type)
+    unsigned int interface_kernel_type = 0;
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, erodeRadius, interface_kernel_type, boundaryToForeground  );
@@ -448,20 +448,20 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
-    interface_kernel_type = 0;
-    swtich(kernel_type)
+    unsigned int interface_kernel_type = 0;
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     
@@ -501,7 +501,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
 }
 
 Image
-MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, const std::vector< unsigned int > Radius, 
+MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, const std::vector< unsigned int > &Radius, 
                                                       KernelEnum kernel_type, bool boundaryToForeground )
 {
     // open means first erode then dilate
@@ -520,19 +520,19 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, c
     elastix::BinCPUInputImageType::Pointer itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >(
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
     unsigned int interface_kernel_type = 0;
-    swtich(kernel_type)
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryErode( itkImage, Radius, interface_kernel_type, boundaryToForeground  );
@@ -590,19 +590,19 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
     
     unsigned int interface_kernel_type = 0;
-    swtich(kernel_type)
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
@@ -661,19 +661,19 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
             Cast( inputImage, sitkUInt8 ).GetITKBase() );
     
     unsigned int interface_kernel_type = 0;
-    swtich(kernel_type)
+    switch (kernel_type)
     {
-    case sitkAnnulus:
-        interface_kernel_type = 0
-        break;
-    case sitkBox:
-        interface_kernel_type = 0
-        break;
     case sitkBall:
-        interface_kernel_type = 0
+        interface_kernel_type = 0;
         break;
     case sitkCross:
-        interface_kernel_type = 1
+        interface_kernel_type = 1;
+        break;
+    case sitkAnnulus:
+        interface_kernel_type = 2;
+        break;
+    case sitkBox:
+        interface_kernel_type = 3;
         break;
     }
     elastix::BinGPUOutputImageType::Pointer gpuImage = pInterface->BinaryDilate( itkImage, Radius, interface_kernel_type, boundaryToForeground );
