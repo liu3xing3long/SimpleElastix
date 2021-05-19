@@ -180,7 +180,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Resample( const Image &inputImage,
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -215,7 +215,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Threshold( const Image &inputImage, do
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -267,7 +267,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -318,7 +318,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryDilate( const Image &inputImage,
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -368,7 +368,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -418,7 +418,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryErode( const Image &inputImage, 
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -469,7 +469,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     
     if ( gpuImage.IsNotNull() )
     {
-        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() );
         SAFE_DELETE( pInterface );
     }
     else
@@ -488,7 +488,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, u
     
     if ( gpuImage.IsNotNull() )
     {
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -539,7 +539,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, c
     
     if ( gpuImage.IsNotNull() )
     {
-        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() );
         SAFE_DELETE( pInterface );
     }
     else
@@ -558,7 +558,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryOpen( const Image &inputImage, c
     
     if ( gpuImage.IsNotNull() )
     {
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -609,7 +609,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     
     if ( gpuImage.IsNotNull() )
     {
-        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() );
         SAFE_DELETE( pInterface );
     }
     else
@@ -628,7 +628,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     
     if ( gpuImage.IsNotNull() )
     {
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -680,7 +680,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     
     if ( gpuImage.IsNotNull() )
     {
-        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage );
+        itkImage = itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() );
         SAFE_DELETE( pInterface );
     }
     else
@@ -699,7 +699,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryClose( const Image &inputImage, 
     
     if ( gpuImage.IsNotNull() )
     {
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -737,7 +737,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::BinaryThreshold( const Image &inputIma
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::BinCPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -778,7 +778,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Median( const Image &inputImage,
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -820,7 +820,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::Mean( const Image &inputImage,
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -863,7 +863,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::GradientAnisotropicDiffusion( const Im
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -904,7 +904,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::RecursiveGaussian( const Image &inputI
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -945,7 +945,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::DiscreteGaussian( const Image &inputIm
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
@@ -987,7 +987,7 @@ MedImageGPUFilter::MedImageGPUFilterImpl::DiscreteGaussian( const Image &inputIm
     if ( gpuImage.IsNotNull() )
     {
         // Image outputImage;
-        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage ) );
+        outputImage = Image( itkDynamicCastInDebugMode< elastix::CPUInputImageType * >( gpuImage.GetPointer() ) );
         outputImage.MakeUnique();
     }
     else
